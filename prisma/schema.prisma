@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  // directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+}
+
+// Schemas
+
+model User {
+  id       String   @id @default(uuid())
+  email    String   @unique
+  name     String?
+  image    String?
+  password String?
+  provider Provider
+  Stream   Stream[]
+  Upvote   Upvote[]
+}
+
+model Stream {
+  id            String         @id @default(uuid())
+  type          StreamType
+  url           String
+  extractedId   String
+  title         String         @default("")
+  smallImg      String         @default("")
+  bigImg        String         @default("")
+  active        Boolean        @default(false)
+  played        Boolean        @default(false)
+  playedTs      DateTime?
+  createdAt     DateTime       @default(now())
+  user          User           @relation(fields: [userId], references: [id])
+  userId        String
+  Upvote        Upvote[]
+  space         Space          @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  spaceId       String
+  CurrentStream CurrentStream?
+}
+
+model CurrentStream {
+  id       String  @id @default(uuid())
+  stream   Stream? @relation(fields: [streamId], references: [id])
+  streamId String  @unique
+  space    Space   @relation(fields: [spaceId], references: [id])
+  spaceId  String
+}
+
+model Upvote {
+  id       String  @id @default(uuid())
+  user     User?   @relation(fields: [userId], references: [id])
+  userId   String? @unique
+  stream   Stream? @relation(fields: [streamId], references: [id])
+  streamId String? @unique
+
+  @@unique([userId, streamId])
+}
+
+model Space {
+  id            String          @id @default(uuid())
+  Stream        Stream[]
+  CurrentStream CurrentStream[]
+}
+
+enum Provider {
+  Google
+  Github
+  Credential
+}
+
+enum StreamType {
+  Spotify
+  Youtube
+}
