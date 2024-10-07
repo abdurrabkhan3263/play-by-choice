@@ -19,3 +19,40 @@ body {
     --radius: 0.5rem;
   }
 }
+
+.main_container {
+  @apply flex flex-col px-6 lg:px-8 xl:px-40 mt-8;
+}
+
+.stream_container {
+  @apply mt-16 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-8 lg:flex flex-col overflow-y-auto;
+}
+
+.custom_scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #3a3b3a #1e201e;
+}
+
+.custom_scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.custom_scroll::-webkit-scrollbar-track {
+  background: #1e201e;
+}
+
+.custom_scroll::-webkit-scrollbar-thumb {
+  background-color: #3a3b3a;
+  border-radius: var(--radius);
+  border: 2px solid #1e201e;
+}
+
+@media (max-width: 768px) {
+  .custom_scroll {
+    scrollbar-width: none;
+  }
+
+  .custom_scroll::-webkit-scrollbar {
+    display: none;
+  }
+}

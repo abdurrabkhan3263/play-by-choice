@@ -1,10 +1,19 @@
 services:
-  app:
-    build:
-      context: .
-      target: final
-    image: nextjs-dev
-    ports:
-      - 3000:3000
+  db:
+    image: postgres:9.6
+    restart: always
+    volumes:
+      - ./data:/var/lib/postgresql/data
     environment:
-      - NODE_ENV=development
+      POSTGRES_DB: play_by_choice
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: randompassword
+    ports:
+      - "5432:5432"
+
+  # adminer is a web interface for managing databases
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"

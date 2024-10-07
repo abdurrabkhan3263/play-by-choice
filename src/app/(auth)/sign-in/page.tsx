@@ -17,22 +17,31 @@ import { redirect } from "next/navigation";
 import AuthError from "@/components/AuthError";
 import { signIn, useSession } from "next-auth/react";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 function LoginForm() {
   const { status } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   if (status === "loading") {
     return <div>Loading...</div>;
   }
 
   if (status === "authenticated") {
-    redirect("/");
+    redirect("/dashboard");
   }
 
   const handleFormSubmit = async () => {
+    setIsSubmitting(true);
     if (!email || !password) {
+      toast({
+        title: "Warning",
+        description: "Email and Password is required",
+        variant: "destructive",
+      });
       return;
     }
     signIn("credentials", {
@@ -82,8 +91,13 @@ function LoginForm() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            <Button type="button" className="w-full" onClick={handleFormSubmit}>
-              Login
+            <Button
+              type="button"
+              className="w-full"
+              onClick={handleFormSubmit}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Logging in..." : "Log in"}
             </Button>
             <div className="flex gap-8">
               <SignInButtons providers="google" svg="/logo/google.svg" />

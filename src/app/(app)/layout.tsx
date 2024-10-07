@@ -1,9 +1,9 @@
 import NavBar from "@/components/NavBar";
 import React from "react";
 
-function layout({ children }: { children: React.ReactNode }) {
+async function layout({ children }: { children: React.ReactNode }) {
   return (
-    <div>
+    <div className="max-h-screen max-w-screen">
       <NavBar />
       {children}
     </div>

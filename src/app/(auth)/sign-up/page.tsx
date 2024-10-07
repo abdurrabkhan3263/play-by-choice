@@ -17,14 +17,18 @@ import SignInButtons from "@/components/SignInButton";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { z } from "zod";
+import { CreateUser } from "@/lib/zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 function SignUpForm() {
-  const [firstName, setFirstName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+  const { handleSubmit, register } = useForm<z.infer<typeof CreateUser>>({
+    resolver: zodResolver(CreateUser),
+  });
 
   const { status } = useSession();
 
@@ -33,11 +37,25 @@ function SignUpForm() {
   }
 
   if (status === "authenticated") {
-    redirect("/");
+    redirect("/dashboard");
   }
 
-  const handleSubmit = async () => {
+  const formSubmit = async (data: z.infer<typeof CreateUser>) => {
+    const result = CreateUser.safeParse(data);
+
     setIsSubmitting(true);
+
+    if (!result.success) {
+      const errorMessage = result.error.errors
+        .map(({ message }) => message)
+        .join(", ");
+
+      return toast({
+        title: "Warning",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
 
     try {
       const response = await fetch("/api/user", {
@@ -46,9 +64,7 @@ function SignUpForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email,
-          name: firstName,
-          password,
+          ...result.data,
           provider: "Credential",
         }),
       });
@@ -90,48 +106,42 @@ function SignUpForm() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
-            <div className="grid gap-4">
-              <div className="grid gap-2 col-span-2">
-                <Label htmlFor="first-name">First name</Label>
+            <form onSubmit={handleSubmit(formSubmit)}>
+              <div className="grid gap-4">
+                <div className="grid gap-2 col-span-2">
+                  <Label htmlFor="first-name">First name</Label>
+                  <Input
+                    id="first-name"
+                    placeholder="Max"
+                    required
+                    {...register("name")}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="first-name"
-                  placeholder="Max"
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
                   required
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  {...register("email")}
                 />
               </div>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="********"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <Button
-              type="button"
-              className="w-full"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Creating account..." : "Create account"}
-            </Button>
+              <div className="grid gap-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="********"
+                  required
+                  {...register("password")}
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? "Creating account..." : "Create account"}
+              </Button>
+            </form>
             <div className="flex gap-8">
               <SignInButtons providers="google" svg="/logo/google.svg" />
               <SignInButtons providers="github" svg="/logo/github.svg" />
