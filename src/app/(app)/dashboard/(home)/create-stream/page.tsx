@@ -19,10 +19,17 @@ import Link from "next/link";
 import { CreateStreamSchema } from "@/lib/zod";
 import { CreateStreamType } from "@/types";
 import AddStreamBtn from "@/components/AddStreamBtn";
+import StreamCard from "@/components/StreamCard";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+import { createStream } from "@/lib/action/space.action";
 
 function CreateStream() {
   const [streamUrl, setStreamUrl] = useState<string>("");
   const [stream, setStream] = useState<CreateStreamType[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const { toast } = useToast();
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof CreateStreamSchema>>({
     resolver: zodResolver(CreateStreamSchema),
@@ -31,8 +38,28 @@ function CreateStream() {
     },
   });
 
-  const onSubmit = (data: z.infer<typeof CreateStreamSchema>) => {
-    console.log(data);
+  const onSubmit = async (data: z.infer<typeof CreateStreamSchema>) => {
+    setIsSubmitting(true);
+    try {
+      const addStream = await createStream({ data, stream });
+      if (addStream) {
+        toast({
+          title: "Success",
+          description: addStream.message,
+        });
+        router.push("/dashboard");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Something went wrong",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+      form.reset();
+    }
   };
 
   return (
@@ -42,7 +69,7 @@ function CreateStream() {
           <h1 className="text-3xl font-semibold">Add Stream</h1>
           <Link
             href={"/dashboard"}
-            className="bg-red-500 p-1.5 rounded-full hover:bg-red-800 transition-all"
+            className="p-1.5 rounded-full bg-[#F9F9F9]  transition-all"
           >
             <Image src="/logo/close.svg" height={26} width={26} alt="delete" />
           </Link>
@@ -80,55 +107,51 @@ function CreateStream() {
                     setStream={setStream}
                     streamUrl={streamUrl}
                     stream={stream}
+                    setStreamUrl={setStreamUrl}
                   />
                 </div>
               </div>
 
-              {stream.length <= 0 && (
-                <div className="mt-6">
-                  <h2 className="text-xl font-semibold">Added Stream</h2>
-                  <div
-                    className="flex mt-2 flex-col gap-y-3 flex-1 overflow-y-auto"
-                    style={{ maxHeight: "300px" }}
-                  >
-                    <div className="w-full h-fit p-2 rounded-md shrink-0 bg-blue-500">
-                      <div className="flex justify-between items-center">
-                        <div className="flex gap-2 items-center">
-                          <div className="h-20 w-28 rounded-lg overflow-hidden bg-red-500">
-                            <Image
-                              src={
-                                "https://i.scdn.co/image/ab67616d00001e02bb52f4d0546656ebcf9ed925"
-                              }
-                              height={300}
-                              width={300}
-                              alt="spotify"
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-semibold">
-                              Bheegi Bheegi raton mein yaad teri aayi hai
-                            </h3>
-                            <p className="text-sm">Spotify</p>
-                          </div>
-                        </div>
-                        <button>
-                          <Image
-                            src="/logo/close.svg"
-                            height={26}
-                            width={26}
-                            alt="delete"
-                          />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="w-full h-16 shrink-0 bg-blue-500"></div>
-                  </div>
+              <div className="mt-6">
+                <h2 className="text-xl font-semibold">Added Stream</h2>
+                <div
+                  className="flex mt-2 flex-col gap-y-3 flex-1 overflow-y-auto"
+                  style={{ maxHeight: "300px" }}
+                >
+                  {stream.length <= 0 ? (
+                    <p className="text-sm text-[#8D8D8D]">No stream added</p>
+                  ) : (
+                    stream.map(
+                      (
+                        { title, bigImg, createdAt, type, extractedId },
+                        index
+                      ) => (
+                        <StreamCard
+                          title={title}
+                          image={bigImg}
+                          createdAt={createdAt}
+                          type={type}
+                          key={index}
+                          setStream={setStream}
+                          id={extractedId}
+                        />
+                      )
+                    )
+                  )}
                 </div>
-              )}
+              </div>
             </div>
-            <Button size={"full"} type="submit">
+            <Button size={"full"} type="submit" disabled={isSubmitting}>
               Submit
+              {isSubmitting && (
+                <Image
+                  src="/logo/loader.svg"
+                  height={20}
+                  width={20}
+                  alt="loading"
+                  className="animate-spin ml-2"
+                />
+              )}
             </Button>
           </form>
         </Form>

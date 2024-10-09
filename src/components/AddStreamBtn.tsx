@@ -6,17 +6,22 @@ import { CreateStreamType } from "@/types";
 import React from "react";
 import { Button } from "./ui/button";
 import { CreateStreamUrl } from "@/lib/zod";
+import Image from "next/image";
+import { StreamType } from "@prisma/client";
 
 function AddStreamBtn({
   streamUrl,
+  setStreamUrl,
   setStream,
   stream,
 }: {
   streamUrl: string;
+  setStreamUrl: React.Dispatch<React.SetStateAction<string>>;
   setStream: React.Dispatch<React.SetStateAction<CreateStreamType[]>>;
   stream: CreateStreamType[];
 }) {
   const { toast } = useToast();
+  const [loading, setLoading] = React.useState(false);
 
   async function CreateStream() {
     const typeChecking = CreateStreamUrl.safeParse(streamUrl);
@@ -38,6 +43,7 @@ function AddStreamBtn({
         description: "Stream already exist",
         variant: "destructive",
       });
+      setStreamUrl("");
       return;
     }
 
@@ -54,36 +60,59 @@ function AddStreamBtn({
           description: "Invalid Spotify URL",
           variant: "destructive",
         });
+        setStreamUrl("");
         return;
       }
 
-      const spotifyData = await fetchSpotifyWebApi({
-        endpoint: `v1/tracks/${trackId}`,
-        method: "GET",
-      });
+      try {
+        setLoading(true);
+        const spotifyData = await fetchSpotifyWebApi({
+          endpoint: `v1/tracks/${trackId}`,
+          method: "GET",
+        });
 
-      if (spotifyData.error) {
+        if (spotifyData.error) {
+          toast({
+            title: "Error",
+            description: spotifyData.error.message,
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (stream.length >= 1) {
+          toast({
+            title: "Warning",
+            description: "You can only add one stream",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        setStream((prev) => [
+          ...prev,
+          {
+            title: spotifyData?.name,
+            type: type as StreamType,
+            extractedId: trackId,
+            smallImg: spotifyData?.album?.images[2]?.url,
+            bigImg: spotifyData?.album?.images[0]?.url,
+            createdAt: new Date(),
+            url: streamUrl,
+            popularity: spotifyData?.popularity,
+          },
+        ]);
+      } catch (error) {
         toast({
           title: "Error",
-          description: spotifyData.error.message,
+          description: `Failed to add Spotify stream: ${error}`,
           variant: "destructive",
         });
         return;
+      } finally {
+        setStreamUrl("");
+        setLoading(false);
       }
-
-      setStream((prev) => [
-        ...prev,
-        {
-          title: spotifyData?.name,
-          type,
-          extractedId: trackId,
-          smallImg: spotifyData?.album?.images[2]?.url,
-          bigImg: spotifyData?.album?.images[0]?.url,
-          createdAt: new Date(),
-          url: streamUrl,
-          popularity: spotifyData?.popularity,
-        },
-      ]);
     } else {
       toast({
         title: "Error",
@@ -95,8 +124,22 @@ function AddStreamBtn({
   }
 
   return (
-    <Button onClick={CreateStream} type="button">
+    <Button
+      onClick={CreateStream}
+      type="button"
+      className="flex gap-2"
+      disabled={loading}
+    >
       Add Stream
+      {loading && (
+        <Image
+          src="/logo/loader.svg"
+          height={20}
+          width={20}
+          alt="loading"
+          className="animate-spin"
+        />
+      )}
     </Button>
   );
 }

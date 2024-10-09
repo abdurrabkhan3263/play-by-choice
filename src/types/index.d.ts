@@ -8,4 +8,5 @@ declare type CreateStreamType = {
   bigImg: string;
   createdAt: Date;
   type: StreamType;
+  popularity?: number;
 };
