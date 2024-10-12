@@ -3,7 +3,7 @@ import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import Github from "next-auth/providers/github";
 import Credentials from "next-auth/providers/credentials";
-import { prismaClient } from "@/lib/db";
+import prismaClient from "@/lib/db";
 import bcrypt from "bcrypt";
 
 enum Provider {
@@ -20,10 +20,10 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials: any): Promise<any> {
         if (credentials) {
           const user = await prismaClient.user.findUnique({
-            where: { email: credentials.email },
+            where: { email: credentials?.email },
           });
           if (user) {
             if (user.provider !== Provider.Credential) {
@@ -64,15 +64,27 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account && profile) {
-        token.name = profile.name;
-        token.email = profile.email;
+        const user = await prismaClient.user.findFirst({
+          where: {
+            email: profile?.email,
+          },
+        });
+
+        if (user) {
+          token.name = profile?.name ?? "";
+          token.email = profile?.email ?? "";
+          token.id = user.id;
+          token.image = profile?.image ?? "";
+        }
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
         if (session && session.user) {
-          session.user.email = token.email;
+          session.user.email = token?.email ?? "";
+          session.user.id = token.id ?? "";
+          session.user.name = token.name ?? "";
         }
       }
       return session;

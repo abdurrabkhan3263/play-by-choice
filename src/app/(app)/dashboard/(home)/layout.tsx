@@ -1,4 +1,4 @@
-import ListStreams from "@/components/ListStreams";
+import ListStreams from "@/components/Space/ListSpace";
 import { Button } from "@/components/ui/button";
 import React from "react";
 

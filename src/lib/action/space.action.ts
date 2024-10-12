@@ -6,7 +6,7 @@ import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
-export async function createStream({
+export async function createSpace({
   data,
   stream,
 }: {
@@ -28,16 +28,83 @@ export async function createStream({
         "Content-Type": "application/json",
       },
     });
-    console.log("Add Stream", addStream);
     const res = await addStream.json();
     if (addStream.status >= 400) {
       throw new Error(res.message);
     }
-    console.log("Response", res);
     return res;
   } catch (error) {
     console.log("Error is:- ", error);
   } finally {
     revalidatePath("/dashboard");
+  }
+}
+
+export async function getAllSpace() {
+  try {
+    const currentUser = await getServerSession(authOptions);
+    const host = headers().get("host");
+    const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
+    const res = await fetch(
+      `${protocol}://${host}/api/get-all-spaces/${encodeURIComponent(
+        currentUser?.user?.email as string
+      )}`,
+      {
+        method: "GET",
+      }
+    );
+    return res;
+  } catch (error) {
+    console.log("Error is:- ", error);
+  }
+}
+
+export async function deleteSpaceApi({ id }: { id: string }) {
+  try {
+    const host = headers().get("host");
+    const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
+    const res = await fetch(`${protocol}://${host}/api/space/more/${id}`, {
+      method: "DELETE",
+    });
+    if (res.statusText !== "OK") {
+      return {
+        status: "Error",
+        message: "Something went wrong while deleting space",
+      };
+    }
+    revalidatePath("/dashboard");
+    return {
+      status: "Success",
+      message: "Space is deleted successfully",
+    };
+  } catch (error) {
+    console.log("Error is:- ", error);
+  }
+}
+
+export async function getSpaceById({ id }: { id: string }) {
+  try {
+    const host = headers().get("host");
+    const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
+    const res = await fetch(`${protocol}://${host}/api/space/more/${id}`, {
+      method: "GET",
+    });
+    if (res.statusText !== "OK") {
+      return {
+        status: "Error",
+        message: "Something went wrong while fetching space",
+      };
+    }
+    const data = await res.json();
+
+    if (!data.data) {
+      return {
+        status: "Error",
+        message: "Something went wrong while fetching space",
+      };
+    }
+    return data.data;
+  } catch (error) {
+    console.log("Error is:- ", error);
   }
 }

@@ -1,4 +1,4 @@
-import { prismaClient } from "@/lib/db";
+import prismaClient from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { z } from "zod";

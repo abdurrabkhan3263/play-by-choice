@@ -1,0 +1,24 @@
+<svg width="32" height="32" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(0, 12) scale(0.8)">
+    <rect x="1" y="-10" width="3" height="15" fill="#ffffff" rx="1.5" ry="1.5">
+      <animate attributeName="height" values="20;30;20" dur="0.4s" repeatCount="indefinite" />
+      <animate attributeName="y" values="-10;-15;-10" dur="0.4s" repeatCount="indefinite" />
+    </rect>
+    <rect x="6" y="-15" width="3" height="25" fill="#e9930a" rx="1.5" ry="1.5">
+      <animate attributeName="height" values="30;15;30" dur="0.5s" repeatCount="indefinite" />
+      <animate attributeName="y" values="-15;-7.5;-15" dur="0.5s" repeatCount="indefinite" />
+    </rect>
+    <rect x="11" y="-12.5" width="3" height="20" fill="#ffffff" rx="1.5" ry="1.5">
+      <animate attributeName="height" values="25;35;25" dur="0.45s" repeatCount="indefinite" />
+      <animate attributeName="y" values="-12.5;-17.5;-12.5" dur="0.45s" repeatCount="indefinite" />
+    </rect>
+    <rect x="16" y="-17.5" width="3" height="30" fill="#e9930a" rx="1.5" ry="1.5">
+      <animate attributeName="height" values="35;20;35" dur="0.55s" repeatCount="indefinite" />
+      <animate attributeName="y" values="-17.5;-10;-17.5" dur="0.55s" repeatCount="indefinite" />
+    </rect>
+    <rect x="21" y="-11.25" width="3" height="18.5" fill="#ffffff" rx="1.5" ry="1.5">
+      <animate attributeName="height" values="22.5;32.5;22.5" dur="0.4s" repeatCount="indefinite" />
+      <animate attributeName="y" values="-11.25;-16.25;-11.25" dur="0.4s" repeatCount="indefinite" />
+    </rect>
+  </g>
+</svg>

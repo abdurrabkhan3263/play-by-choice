@@ -7,6 +7,7 @@ import React from "react";
 import { Button } from "./ui/button";
 import { CreateStreamUrl } from "@/lib/zod";
 import Image from "next/image";
+import { useSession } from "next-auth/react";
 import { StreamType } from "@prisma/client";
 
 function AddStreamBtn({
@@ -22,6 +23,7 @@ function AddStreamBtn({
 }) {
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
+  const { data, status } = useSession();
 
   async function CreateStream() {
     const typeChecking = CreateStreamUrl.safeParse(streamUrl);
@@ -80,7 +82,11 @@ function AddStreamBtn({
           return;
         }
 
-        if (stream.length >= 1) {
+        const isUserAlreadyAddedStream = stream.some(
+          (s) => s.userId === data?.user?.id
+        );
+
+        if (isUserAlreadyAddedStream) {
           toast({
             title: "Warning",
             description: "You can only add one stream",
@@ -100,6 +106,7 @@ function AddStreamBtn({
             createdAt: new Date(),
             url: streamUrl,
             popularity: spotifyData?.popularity,
+            userId: data?.user?.id,
           },
         ]);
       } catch (error) {
@@ -128,7 +135,7 @@ function AddStreamBtn({
       onClick={CreateStream}
       type="button"
       className="flex gap-2"
-      disabled={loading}
+      disabled={loading || status === "loading"}
     >
       Add Stream
       {loading && (

@@ -1,5 +1,4 @@
-import { prismaClient } from "@/lib/db";
-
+import prismaClient from "@/lib/db";
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 import { redirect } from "next/navigation";
@@ -79,6 +78,7 @@ export async function GET(
         select: {
           name: true,
           image: true,
+          email: true,
         },
       },
       Stream: {

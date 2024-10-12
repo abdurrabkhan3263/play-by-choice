@@ -19,10 +19,10 @@ import Link from "next/link";
 import { CreateStreamSchema } from "@/lib/zod";
 import { CreateStreamType } from "@/types";
 import AddStreamBtn from "@/components/AddStreamBtn";
-import StreamCard from "@/components/StreamCard";
+import StreamCard from "@/components/Space/StreamCard";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { createStream } from "@/lib/action/space.action";
+import { createSpace } from "@/lib/action/space.action";
 
 function CreateStream() {
   const [streamUrl, setStreamUrl] = useState<string>("");
@@ -41,7 +41,7 @@ function CreateStream() {
   const onSubmit = async (data: z.infer<typeof CreateStreamSchema>) => {
     setIsSubmitting(true);
     try {
-      const addStream = await createStream({ data, stream });
+      const addStream = await createSpace({ data, stream });
       if (addStream) {
         toast({
           title: "Success",

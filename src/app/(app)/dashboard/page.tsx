@@ -1,12 +1,12 @@
-import CreateSpaceButton from "@/components/CreateSpaceButton";
-import ListStreams from "@/components/ListStreams";
+import CreateSpaceButton from "@/components/Space/CreateSpaceButton";
+import ListStreams from "@/components/Space/ListSpace";
 import React from "react";
 
 function Dashboard() {
   return (
     <div className="flex justify-center">
       <div
-        className="main_container w-[1280px]"
+        className="main_container max-w-7xl w-full"
         style={{ height: "calc(100vh - 128px)" }}
       >
         <div className="h-[60px]">

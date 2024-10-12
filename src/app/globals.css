@@ -21,11 +21,11 @@ body {
 }
 
 .main_container {
-  @apply flex flex-col px-6 lg:px-8 xl:px-40 mt-8;
+  @apply flex flex-col px-6 lg:px-8 xl:px-40 mt-6;
 }
 
-.stream_container {
-  @apply mt-16 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-8 lg:flex flex-col overflow-y-auto;
+.space_container {
+  @apply mt-8 lg:mt-12 grid grid-cols-1 sm:grid-cols-2 overflow-y-auto md:grid-cols-3 lg:grid-cols-2 gap-8;
 }
 
 .custom_scroll {

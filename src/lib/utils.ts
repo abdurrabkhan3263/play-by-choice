@@ -28,9 +28,7 @@ export async function fetchSpotifyWebApi({
 }) {
   console.log(process.env.SPOTIFY_TOKEN);
   const res = await fetch(`https://api.spotify.com/${endpoint}`, {
-    headers: {
-      Authorization: `Bearer `,
-    },
+   
     method,
     body: JSON.stringify(body),
   });
@@ -39,6 +37,7 @@ export async function fetchSpotifyWebApi({
 
 export function timeAgo(date: Date) {
   const now = new Date();
+  date = new Date(date);
   const secondsPast = Math.floor((now.getTime() - date.getTime()) / 1000);
 
   if (secondsPast < 60) {
@@ -62,4 +61,14 @@ export function timeAgo(date: Date) {
   }
   const yearsPast = Math.floor(monthsPast / 12);
   return `${yearsPast} years ago`;
+}
+
+export function dateFormat(data: Date) {
+  const formatedDate = new Date(data).toLocaleDateString("en-IN", {
+    timeZone: "UTC",
+    month: "numeric",
+    day: "numeric",
+    year: "numeric",
+  });
+  return formatedDate;
 }
