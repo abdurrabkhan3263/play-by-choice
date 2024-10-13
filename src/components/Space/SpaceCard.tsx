@@ -2,25 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { dateFormat } from "@/lib/utils";
 import { SpaceType } from "@/types";
-import { CalendarDays, Loader2, Music, X } from "lucide-react";
+import { CalendarDays, Music, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { deleteSpaceApi } from "@/lib/action/space.action";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { useState } from "react";
-import { useSession } from "next-auth/react";
-import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import DeleteSpace from "./DeleteSpace";
+import { Button } from "../ui/button";
 
 export default function SpaceCard({
   id,
@@ -29,41 +17,7 @@ export default function SpaceCard({
   Stream,
   createdBy,
 }: SpaceType) {
-  const [isOpen, setIsOpen] = useState(false);
-  const { status, data } = useSession();
-  const [isDeleting, setIsDeleting] = useState(false);
-  const { toast } = useToast();
   const router = useRouter();
-
-  const deleteSpace = async () => {
-    setIsDeleting(true);
-    try {
-      const res = await deleteSpaceApi({ id });
-      if (res?.status === "Success") {
-        setIsOpen(false);
-        toast({
-          title: "Success",
-          description: "Space deleted successfully",
-        });
-        router.replace("/dashboard");
-      } else {
-        toast({
-          title: "Error",
-          description: res?.message || "Something went wrong",
-          variant: "destructive",
-        });
-      }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Something went wrong",
-        variant: "destructive",
-      });
-    } finally {
-      setIsDeleting(false);
-    }
-  };
 
   return (
     <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl">
@@ -117,64 +71,21 @@ export default function SpaceCard({
             </div>
           </div>
         </div>
-        {status !== "loading" && data?.user?.email === createdBy.email && (
-          <div className="absolute right-2 top-2">
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-full"
-                >
-                  <span className="sr-only">Delete space</span>
-                  <X className="h-5 w-5" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px] bg-gray-800 text-gray-100 border-gray-700">
-                <DialogHeader>
-                  <DialogTitle className="text-xl font-semibold">
-                    Delete Space
-                  </DialogTitle>
-                  <DialogDescription className="text-gray-400">
-                    Are you sure you want to delete this space? This action
-                    cannot be undone.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="mt-4 p-4 bg-gray-900 rounded-lg">
-                  <h3 className="font-medium text-gray-200">{name}</h3>
-                  <p className="text-sm text-gray-400">
-                    Created by {createdBy.name}
-                  </p>
-                </div>
-                <DialogFooter className="sm:justify-between w-full">
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    onClick={deleteSpace}
-                    className="bg-red-600 hover:bg-red-700 text-white"
-                  >
-                    Delete{" "}
-                    {isDeleting && (
-                      <Loader2
-                        height={18}
-                        width={18}
-                        className="animate-spin ml-2"
-                      />
-                    )}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setIsOpen(false)}
-                    className="text-gray-600 border-gray-600 hover:bg-gray-700"
-                  >
-                    Cancel
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-        )}
+        <DeleteSpace
+          createdBy={createdBy}
+          name={name}
+          spaceId={id}
+          place="in_space"
+        >
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-full"
+          >
+            <span className="sr-only">Delete space</span>
+            <X className="h-5 w-5" />
+          </Button>
+        </DeleteSpace>
       </div>
     </div>
   );

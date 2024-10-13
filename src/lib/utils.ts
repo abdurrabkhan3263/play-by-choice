@@ -28,7 +28,6 @@ export async function fetchSpotifyWebApi({
 }) {
   console.log(process.env.SPOTIFY_TOKEN);
   const res = await fetch(`https://api.spotify.com/${endpoint}`, {
-   
     method,
     body: JSON.stringify(body),
   });

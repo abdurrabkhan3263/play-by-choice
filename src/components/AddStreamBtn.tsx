@@ -135,7 +135,7 @@ function AddStreamBtn({
       onClick={CreateStream}
       type="button"
       className="flex gap-2"
-      disabled={loading || status === "loading"}
+      disabled={loading || status === "authenticated" ? false : true}
     >
       Add Stream
       {loading && (

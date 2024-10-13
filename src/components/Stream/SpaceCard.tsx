@@ -5,7 +5,7 @@ import React from "react";
 import { Button } from "../ui/button";
 import { CurrentStream, StreamTypeApi } from "@/types";
 import { timeAgo } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import { Loader2, Music, ThumbsUp, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -15,26 +15,31 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
+import { deleteStream as deleteStreamApi } from "@/lib/action/stream.action";
 
 function SpaceCard({
   stream,
   currentStream,
   role,
+  setStream,
 }: {
   stream: StreamTypeApi;
   currentStream: CurrentStream;
   role: "Owner" | "Member" | "Creator";
+  setStream: React.Dispatch<React.SetStateAction<StreamTypeApi[]>>;
 }) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
 
-  const deleteStream = async () => {
+  const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      const res = await fetch(`/api/stream/${stream.id}`, {
-        method: "DELETE",
+      const res = await deleteStreamApi({
+        streamId: stream.id,
+        spaceId: stream.spaceId,
       });
-      if (res.ok) {
+      if (res.status === "Success") {
+        setStream((prev) => prev.filter((item) => item.id !== stream.id));
         setIsDeleting(false);
         setIsOpen(false);
       }
@@ -45,67 +50,61 @@ function SpaceCard({
   };
 
   return (
-    <div
-      className="w-full relative h-fit flex flex-col gap-2 lg:gap-8 lg:flex-row ss:w-[46%] flex-shrink-0 lg:w-full p-3 rounded-lg shadow-lg transition-all duration-300 ease-in-out hover:shadow-xl"
-      style={{
-        background: "linear-gradient(135deg, #5A5B5A 0%, #6B6D6B 100%)",
-      }}
-    >
-      <div className="relative aspect-square lg:w-32 overflow-hidden rounded-lg bg-gray-700 shadow-inner">
-        <Image
-          src={stream.bigImg || "/No_Image_Available.jpg"}
-          layout="fill"
-          lazyBoundary="100px"
-          objectFit="cover"
-          alt="music_name"
-        />
-      </div>
-      <div className="flex flex-col justify-between">
-        <div className="flex flex-col">
-          <h2 className="text-2xl font-semibold flex gap-2">
-            {stream.title}
-            {currentStream && stream.id === currentStream.streamId && (
-              <Image
-                src={"/logo/music_wave.svg"}
-                height={24}
-                width={24}
-                alt="play"
-              />
-            )}
-          </h2>
-          <span className="text-sm">
-            {timeAgo(stream.createdAt)}{" "}
-            <span className="text-gray-400">by</span>{" "}
-            <span className="font-semibold">{stream.user.name}</span>
-          </span>
+    <div className="relative w-full sm:w-[48%] md:w-[40%] lg:w-full p-4 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:shadow-xl bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 group">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+        <div className="relative aspect-square w-full lg:w-40 overflow-hidden rounded-lg bg-gray-700 shadow-inner group-hover:shadow-lg transition-all duration-300">
+          <Image
+            src={stream.bigImg || "/No_Image_Available.jpg"}
+            layout="fill"
+            objectFit="cover"
+            alt={stream.title}
+            className="transition-transform duration-300 group-hover:scale-105"
+          />
         </div>
-        <div className="flex gap-3 mt-4 items-center">
-          <Button className="flex gap-2">
-            UpVote
-            <Image src={"/logo/up.svg"} height={24} width={24} alt="vote" />
-          </Button>
-          {stream.Upvote.length > 0 && (
-            <span className="font-semibold">{stream.Upvote.length}</span>
-          )}
+        <div className="flex flex-col justify-between flex-grow">
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+              {stream.title}
+              {currentStream && stream.id === currentStream.streamId && (
+                <Music className="text-blue-400 animate-pulse" size={24} />
+              )}
+            </h2>
+            <p className="text-sm text-gray-400">
+              {timeAgo(stream.createdAt)}{" "}
+              <span className="text-gray-500">by</span>{" "}
+              <span className="font-medium text-gray-300">
+                {stream.user.name}
+              </span>
+            </p>
+          </div>
+          <div className="flex items-center gap-4 mt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white border-none transition-all duration-300 ease-in-out transform hover:scale-105"
+            >
+              <ThumbsUp className="mr-2 h-4 w-4" />
+              Upvote
+              {stream.Upvote.length > 0 && (
+                <span className="ml-2 font-semibold">
+                  {stream.Upvote.length}
+                </span>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
-      {role === "Owner" || role === "Creator" ? (
-        <div className="absolute right-2 top-2">
+      {(role === "Owner" || role === "Creator") && (
+        <div className="absolute top-2 right-2">
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-full"
+                className="text-gray-400 hover:text-white hover:bg-red-600/20 rounded-full transition-colors duration-300"
               >
                 <span className="sr-only">Delete Stream</span>
-                <Image
-                  src={"/logo/delete.svg"}
-                  height={38}
-                  width={38}
-                  alt="delete"
-                  className="hover:bg-[#171f2e] p-2 rounded-full bg-[#273344] transition-all duration-300 ease-in-out"
-                />
+                <Trash2 className="h-5 w-5" />
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px] bg-gray-800 text-gray-100 border-gray-700">
@@ -124,27 +123,28 @@ function SpaceCard({
                   Created by {stream.user.name}
                 </p>
               </div>
-              <DialogFooter className="sm:justify-between w-full">
+              <DialogFooter className="sm:justify-between">
                 <Button
                   type="button"
                   variant="destructive"
-                  onClick={deleteStream}
-                  className="bg-red-600 hover:bg-red-700 text-white"
+                  onClick={handleDelete}
+                  className="bg-red-600 hover:bg-red-700 text-white transition-colors duration-300"
+                  disabled={isDeleting}
                 >
-                  Delete{" "}
-                  {isDeleting && (
-                    <Loader2
-                      height={18}
-                      width={18}
-                      className="animate-spin ml-2"
-                    />
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete"
                   )}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsOpen(false)}
-                  className="text-gray-600 border-gray-600 hover:bg-gray-700"
+                  className="text-gray-300 border-gray-600 hover:bg-gray-700 transition-colors duration-300"
                 >
                   Cancel
                 </Button>
@@ -152,8 +152,6 @@ function SpaceCard({
             </DialogContent>
           </Dialog>
         </div>
-      ) : (
-        <></>
       )}
     </div>
   );

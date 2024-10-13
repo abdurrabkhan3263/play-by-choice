@@ -174,9 +174,7 @@ export async function PUT(
 
   try {
     const addStream = await prismaClient.stream.create({
-      data: {
-        ...stream,
-      },
+      data: stream,
       include: {
         user: {
           select: {
@@ -188,8 +186,6 @@ export async function PUT(
         Upvote: true,
       },
     });
-
-    console.log("Added Stream", addStream);
 
     if (!addStream) {
       return NextResponse.json(
@@ -210,6 +206,62 @@ export async function PUT(
       {
         status: 201,
       }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      {
+        status: "Error",
+        message: `Something went wrong ${error}`,
+      },
+      { status: 404 }
+    );
+  }
+}
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const { spaceName = "" } = await req.json();
+  const { id } = params;
+
+  if (!id || !spaceName) {
+    return NextResponse.json(
+      {
+        status: "Error",
+        message: "Space Id or Space Name is invalid",
+      },
+      { status: 404 }
+    );
+  }
+
+  try {
+    const updatedSpace = await prismaClient.space.update({
+      where: {
+        id,
+      },
+      data: {
+        name: spaceName,
+      },
+    });
+
+    if (!updatedSpace) {
+      return NextResponse.json(
+        {
+          status: "Error",
+          message: "Something went wrong while updating space",
+        },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        status: "Success",
+        message: "Space is updated successfully",
+        data: updatedSpace,
+      },
+      { status: 200 }
     );
   } catch (error) {
     return NextResponse.json(

@@ -45,16 +45,6 @@ export async function GET(
     },
   });
 
-  if (allStreams.length === 0) {
-    return NextResponse.json(
-      {
-        status: "Not Found",
-        message: "No spaces found",
-      },
-      { status: 404 }
-    );
-  }
-
   const filterIds = allStreams.map((s) => s.spaceId);
 
   const allSpaces = await prismaClient.space.findMany({

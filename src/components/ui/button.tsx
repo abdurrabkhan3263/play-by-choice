@@ -22,6 +22,8 @@ const buttonVariants = cva(
         link: "text-gray-900 underline-offset-4 hover:underline dark:text-gray-50",
         addBtn:
           "bg-green-500 text-gray-50 shadow-sm hover:bg-green-500/90 dark:bg-green-900 dark:text-gray-50 dark:hover:bg-green-900/90",
+        deleteBtn:
+          "shadow gap-2 bg-red-500 hover:bg-red-600/90 dark:bg-gray-50 dark:text-red-900 dark:hover:bg-gray-50/90",
       },
       size: {
         default: "h-9 px-4 py-2",

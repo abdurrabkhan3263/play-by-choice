@@ -4,10 +4,14 @@ import bcrypt from "bcrypt";
 import { z } from "zod";
 
 const CreateUserSchema = z.object({
-  email: z.string().email(),
-  name: z.string().min(3),
-  password: z.string().min(8),
-  provider: z.enum(["Github", "Google", "Credential"]),
+  email: z.string().email({ message: "Invalid email" }),
+  name: z.string().min(3, { message: "Name must be atleast 3 characters" }),
+  password: z
+    .string()
+    .min(8, { message: "Password must be atleast 8 characters" }),
+  provider: z.enum(["Github", "Google", "Credential"], {
+    message: "Invalid provider",
+  }),
 });
 
 export async function POST(req: NextRequest) {
@@ -73,7 +77,13 @@ export async function POST(req: NextRequest) {
     );
   } catch (e) {
     if (e instanceof z.ZodError) {
-      console.log(e.issues);
+      NextResponse.json(
+        {
+          status: "Error",
+          message: e.errors.map((err) => err.message).join(", "),
+        },
+        { status: 411 }
+      );
     }
     return NextResponse.json(
       { status: "Error", message: `Error while creating the user ${e}` },

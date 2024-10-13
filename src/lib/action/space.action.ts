@@ -4,6 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { CreateStreamType } from "@/types";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 
 export async function createSpace({
@@ -32,11 +33,10 @@ export async function createSpace({
     if (addStream.status >= 400) {
       throw new Error(res.message);
     }
+    revalidatePath("/dashboard");
     return res;
   } catch (error) {
     console.log("Error is:- ", error);
-  } finally {
-    revalidatePath("/dashboard");
   }
 }
 
@@ -104,6 +104,41 @@ export async function getSpaceById({ id }: { id: string }) {
       };
     }
     return data.data;
+  } catch (error) {
+    console.log("Error is:- ", error);
+  }
+}
+
+export async function updateSpaceName({
+  spaceId,
+  spaceName,
+}: {
+  spaceId: string;
+  spaceName: string;
+}) {
+  try {
+    const host = headers().get("host");
+    const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
+    const res = await fetch(`${protocol}://${host}/api/space/more/${spaceId}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        spaceName,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (res.statusText !== "OK") {
+      return {
+        status: "Error",
+        message: "Something went wrong while updating space name",
+      };
+    }
+    revalidatePath(`/dashboard/stream/${spaceId}`);
+    return {
+      status: "Success",
+      message: "Space name updated successfully",
+    };
   } catch (error) {
     console.log("Error is:- ", error);
   }
