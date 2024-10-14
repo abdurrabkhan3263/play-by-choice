@@ -5,7 +5,7 @@ import React from "react";
 import { Button } from "../ui/button";
 import { CurrentStream, StreamTypeApi } from "@/types";
 import { timeAgo } from "@/lib/utils";
-import { Loader2, Music, ThumbsUp, Trash2 } from "lucide-react";
+import { Loader2, Music, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -15,21 +15,33 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import { deleteStream as deleteStreamApi } from "@/lib/action/stream.action";
+import {
+  deleteStream as deleteStreamApi,
+  deleteUpVoteStream,
+  upVoteStream,
+} from "@/lib/action/stream.action";
+import { useToast } from "@/hooks/use-toast";
 
 function SpaceCard({
   stream,
   currentStream,
   role,
   setStream,
+  userId,
 }: {
   stream: StreamTypeApi;
   currentStream: CurrentStream;
   role: "Owner" | "Member" | "Creator";
   setStream: React.Dispatch<React.SetStateAction<StreamTypeApi[]>>;
+  userId: string;
 }) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const [upVoting, setUpvoting] = React.useState(false);
+  const [isUpVoted, setIsUpVoted] = React.useState(
+    stream.Upvote.some((upvote) => upvote.userId === userId)
+  );
+  const { toast } = useToast();
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -46,6 +58,56 @@ function SpaceCard({
     } catch (error) {
       console.log("Error happened", error);
       setIsDeleting(false);
+    }
+  };
+
+  const handleUpVote = async () => {
+    setUpvoting(true);
+    try {
+      const res = await upVoteStream({ streamId: stream.id });
+      if (res.status === "Success") {
+        stream.Upvote.push(res.data);
+        setIsUpVoted(true);
+        toast({
+          title: "Success",
+          description: "Upvoted stream",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to upvote stream",
+        variant: "destructive",
+      });
+    } finally {
+      setUpvoting(false);
+    }
+  };
+
+  const removeUpvote = async () => {
+    setUpvoting(true);
+    try {
+      const res = await deleteUpVoteStream({ streamId: stream.id });
+      if (res.status === "Success") {
+        stream.Upvote = stream.Upvote.filter(
+          (upvote) => upvote.userId !== userId
+        );
+        setIsUpVoted(false);
+        toast({
+          title: "Success",
+          description: "Removed upvote",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Failed to remove upvote",
+        variant: "destructive",
+      });
+    } finally {
+      setUpvoting(false);
     }
   };
 
@@ -78,19 +140,51 @@ function SpaceCard({
             </p>
           </div>
           <div className="flex items-center gap-4 mt-4">
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white border-none transition-all duration-300 ease-in-out transform hover:scale-105"
-            >
-              <ThumbsUp className="mr-2 h-4 w-4" />
-              Upvote
-              {stream.Upvote.length > 0 && (
-                <span className="ml-2 font-semibold">
-                  {stream.Upvote.length}
-                </span>
-              )}
-            </Button>
+            {isUpVoted ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white border-none transition-all duration-300 ease-in-out transform hover:scale-105"
+                onClick={removeUpvote}
+                disabled={upVoting}
+              >
+                {upVoting ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <ThumbsDown className="mr-2 h-4 w-4" />
+                    Upvote
+                  </>
+                )}
+                {stream.Upvote.length > 0 && (
+                  <span className="ml-2 font-semibold">
+                    {stream.Upvote.length}
+                  </span>
+                )}
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white border-none transition-all duration-300 ease-in-out transform hover:scale-105"
+                onClick={handleUpVote}
+                disabled={upVoting}
+              >
+                {upVoting ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <ThumbsUp className="mr-2 h-4 w-4" />
+                    Upvote
+                  </>
+                )}
+                {stream.Upvote.length > 0 && (
+                  <span className="ml-2 font-semibold">
+                    {stream.Upvote.length}
+                  </span>
+                )}
+              </Button>
+            )}
           </div>
         </div>
       </div>

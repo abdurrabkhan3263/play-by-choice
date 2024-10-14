@@ -1,5 +1,11 @@
 import { StreamType } from "@prisma/client";
 
+declare type UpVoteType = {
+  id?: string;
+  streamId: string;
+  userId: string;
+};
+
 declare type CreateStreamType = {
   url: string;
   extractedId: string;
@@ -48,10 +54,11 @@ declare type StreamTypeApi = {
   userId: string;
   spaceId: string;
   popularity: number;
-  Upvote: [];
+  Upvote: UpVoteType[];
   user: {
     name: string;
     email: string;
+    id: string;
   };
 };
 

@@ -75,6 +75,7 @@ export async function GET(
       include: {
         createdBy: {
           select: {
+            id: true,
             name: true,
             email: true,
           },
@@ -84,6 +85,7 @@ export async function GET(
             Upvote: true,
             user: {
               select: {
+                id: true,
                 name: true,
                 email: true,
               },
