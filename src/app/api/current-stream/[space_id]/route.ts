@@ -20,6 +20,15 @@ export async function GET(
               url: true,
             },
           },
+          space: {
+            select: {
+              createdBy: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -43,6 +52,11 @@ export async function GET(
                   smallImg: true,
                   popularity: true,
                   url: true,
+                },
+              },
+              space: {
+                select: {
+                  createdBy: true,
                 },
               },
             },
@@ -137,6 +151,11 @@ export async function POST(
               url: true,
             },
           },
+          space: {
+            select: {
+              createdBy: true,
+            },
+          },
         },
       });
 
@@ -172,7 +191,6 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: { space_id: string } }
 ) {
-  console.log("Params", params);
   const { space_id } = params;
   try {
     const result = await prismaClient.$transaction(async (prisma) => {
@@ -199,6 +217,11 @@ export async function PATCH(
               smallImg: true,
               popularity: true,
               url: true,
+            },
+          },
+          space: {
+            select: {
+              createdBy: true,
             },
           },
         },

@@ -23,12 +23,13 @@ function MusicPlayer({
   currentStream,
   token,
   spaceId,
+  role,
 }: {
   currentStream: any;
   token: string;
   spaceId: string;
+  role: "OWNER" | "MEMBER";
 }) {
-  const [player, setPlayer] = useState<any>(null);
   const [isPaused, setIsPaused] = useState<boolean>(true);
   const [track, setTrack] = useState({
     id: "",
@@ -59,7 +60,10 @@ function MusicPlayer({
         volume: 1,
       });
 
-      setPlayer(player);
+      if (!player) {
+        console.log("Player is not ready");
+        return;
+      }
 
       player.addListener(
         "ready",
@@ -85,23 +89,27 @@ function MusicPlayer({
         }
       );
 
+      player.addListener("player_state_changed", (state: any) => {
+        if (!state) {
+          return;
+        }
+        setIsPaused(state.paused);
+      });
+
       if (toggleBtn.current) {
         let isPlaying = false;
+
         toggleBtn.current.addEventListener("click", () => {
           if (!isPlaying) {
             playTrack(currentStream.stream.url)
               .then(() => {
                 isPlaying = true;
-                setIsPaused(false);
               })
               .catch(() => {
                 setIsError(true);
               });
           } else {
-            player.togglePlay().then(() => {
-              console.log("Toggling track");
-              setIsPaused((prev) => !prev);
-            });
+            player.togglePlay();
           }
         });
       }
@@ -158,32 +166,39 @@ function MusicPlayer({
     }
   };
 
-  useEffect(() => {
-    console.log("IsPaused", isPaused);
-  }, [isPaused]);
-
   return (
     <div className="fixed bottom-0 xl:px-16 py-4 flex justify-between items-center right-1/2 translate-x-1/2 translate-y-0 h-fit w-full bg-gray-800">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger className="relative group rounded-md aspect-square w-[70px] h-[70px] overflow-hidden">
-            <Image
-              src={track.coverImg || ""}
-              layout="fill"
-              alt={track.title}
-              className="group-hover:scale-110 transition-transform duration-200"
-              loading="lazy"
-            />
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{track.title}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <div className="flex gap-4 items-center">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger className="relative group rounded-md aspect-square w-[70px] h-[70px] overflow-hidden">
+              <Image
+                src={track.coverImg || "/blur.jpg"}
+                layout="fill"
+                alt={track.title}
+                className="group-hover:scale-110 transition-transform duration-200"
+                loading="lazy"
+                placeholder="blur"
+                blurDataURL={
+                  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lPAAAAA=="
+                }
+              />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{track.title}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <div>
+          <div className="flex items-center gap-4">
+            <p className="text-xl font-semibold">{track.title}</p>
+            <p className="text-sm">{track.popularity}</p>
+          </div>
+          <p className="text-sm font-thin">{track.title}</p>
+        </div>
+      </div>
       <div className="flex-1 flex flex-col items-center justify-between">
-        <p className="text-xl">{track.title}</p>
-        <div className="w-2/3 h-1 rounded-full bg-blue-500 my-3"></div>
-        <Button variant={"ghost"} disabled={!isActive} ref={toggleBtn}>
+        <Button disabled={!isActive || role !== "OWNER"} ref={toggleBtn}>
           {!isPaused ? (
             <Pause size={24} className="text-white" />
           ) : (

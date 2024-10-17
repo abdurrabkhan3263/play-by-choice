@@ -13,7 +13,7 @@ async function page({ params }: { params: { id: string } }) {
 
   return (
     <AudioProvider
-      token="BQAOceh1lUvAg3gzG9P009LB2RXyWi8buvKyk43pX9D1N3-KMOIEwCEOIR0ydZIQIn_qWxl7yuKr2RrrnDaJQVMluA98GnIEXwyawS8p5r3JThodnFL3-NvyCchG6pwIFx7hNQZT5h-vgIhjuz89z0pNC3J4CV6ggfp3hJn3-8XXaumaXopGAk2fqRSB-EwOxLoOMhdhnvhrgc0rhmQs1MYasqsRctTi6O0yZGKZ"
+      token="BQD9oMlIAWTPjXnDJx4cS3aIpPkybTmcD1RqsAf_6n4xoJn9W3C96uMfy29CUpsNeX3Psz6kkgthdkzQEyAJEqNDtW74Fn8vX9A2yXlisalD1wZHDaM3WieoXShpwBTFR2EL0xGV2HhCNd-5xZZyMhiW6rxiCT4Q1nu-Miy5eNvYh_BoTczaQutScd9mmPxwCf4ylGdlrydO-xOukVrh0PbwtBXdv-l6zgSyhtAL"
       spaceId={params.id}
       isAllStreamPlayed={isAllStreamPlayed}
     >

@@ -1,6 +1,8 @@
 import MusicPlayer from "@/components/MusicPlayer";
 import PlayAgain from "@/components/PlayAgain";
 import { getCurrentStream } from "@/lib/action/stream.action";
+import { authOptions } from "../api/auth/[...nextauth]/options";
+import { getServerSession } from "next-auth";
 
 async function AudioProvider({
   children,
@@ -13,6 +15,7 @@ async function AudioProvider({
   spaceId: string;
   isAllStreamPlayed: boolean;
 }) {
+  const currentSession = await getServerSession(authOptions);
   const currentStream = await getCurrentStream({ spaceId });
 
   // TODO : CHECK ALSO IF ANY STREAM IS NOT THERE
@@ -25,6 +28,11 @@ async function AudioProvider({
           currentStream={currentStream}
           token={token}
           spaceId={spaceId}
+          role={
+            currentStream.space.createdBy.id === currentSession?.user?.id
+              ? "OWNER"
+              : "MEMBER"
+          }
         />
       ) : (
         <PlayAgain spaceId={spaceId} />

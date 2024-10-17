@@ -81,8 +81,6 @@ export async function DELETE(
       );
     }
 
-    console.log("Upvote already exists", user.id);
-
     const res = await prismaClient.upvote.delete({
       where: {
         userId_streamId: {
@@ -91,8 +89,6 @@ export async function DELETE(
         },
       },
     });
-
-    console.log("Respnse is:- ", res);
 
     if (!res) {
       return NextResponse.json(
