@@ -28,6 +28,7 @@ function AddStreamBtn({
   async function CreateStream() {
     const typeChecking = CreateStreamUrl.safeParse(streamUrl);
 
+    // Check if the URL is valid using Zod
     if (!typeChecking.success) {
       toast({
         title: "Error",
@@ -49,6 +50,21 @@ function AddStreamBtn({
       return;
     }
 
+    // Check if the user is already added a stream or not
+    const isUserAlreadyAddedStream = stream.some(
+      (s) => s.userId === data?.user?.id
+    );
+
+    if (isUserAlreadyAddedStream) {
+      toast({
+        title: "Warning",
+        description: "You can only add one stream in a space",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Extract the URL and add the new stream on the space
     const url = new URL(streamUrl);
     const type = getStreamType(streamUrl);
 
@@ -82,18 +98,7 @@ function AddStreamBtn({
           return;
         }
 
-        const isUserAlreadyAddedStream = stream.some(
-          (s) => s.userId === data?.user?.id
-        );
-
-        if (isUserAlreadyAddedStream) {
-          toast({
-            title: "Warning",
-            description: "You can only add one stream",
-            variant: "destructive",
-          });
-          return;
-        }
+        console.log("Current User is:- ", data);
 
         setStream((prev) => [
           ...prev,

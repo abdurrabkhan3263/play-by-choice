@@ -29,7 +29,7 @@ export async function fetchSpotifyWebApi({
   console.log(process.env.SPOTIFY_TOKEN);
   const res = await fetch(`https://api.spotify.com/${endpoint}`, {
     headers: {
-      Authorization: `Bearer BQCnmdPRsqvNORCgU2QIWXdjzgFmkAVu68b-a6qUps8AIwuLp-53HudGYBuqVuHc9Yep45nWeoT2kSNkD2XSaAbbEEbHoHn83hYAd_sYlZ-TWvAeA699s89oBTRz63Q9qUJedrw_FCzFQI5vakEs0iSeFHAkH1cCOd3agJzlMut61QDkusGJKEM5Zp6tyEMAIg2MVY3G1FlNONlU-5w6Fyu1qrOpyVb0228s-UtK`,
+      Authorization: `Bearer BQBPhPVZZhyUvr8shYA-1n1oSbjKwW4UP_BIYXlh8O2L-cUg_F5NpT7wnVF0E3L_ABwvmN6STrY3CdE0WLG7tiyKMZJ9pKN079y_7vDNpYEEk4meXTX4hFk1v6e_NuHY3uBO7rxu2IlfVX7bX-UjBzn2AeAOZL_Ge706dLxkR3j7jY4ad_GIOGHF_HIa3m2eXfPkHJhtuhqx2oDRMdJsw9mVKFumsKW_p7MVfZ79`,
     },
     method,
     body: JSON.stringify(body),

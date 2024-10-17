@@ -63,6 +63,7 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, account, profile }) {
+      // TODO :- Need to refactor this code
       if (account && profile) {
         const user = await prismaClient.user.findFirst({
           where: {
