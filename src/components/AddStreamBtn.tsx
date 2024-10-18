@@ -1,7 +1,7 @@
 "use client";
 
 import { useToast } from "@/hooks/use-toast";
-import { fetchSpotifyWebApi, getStreamType } from "@/lib/utils";
+import { getStreamType } from "@/lib/utils";
 import { CreateStreamType } from "@/types";
 import React from "react";
 import { Button } from "./ui/button";
@@ -9,6 +9,8 @@ import { CreateStreamUrl } from "@/lib/zod";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { StreamType } from "@prisma/client";
+import { fetchSpotifyWebApi } from "@/lib/action/spotify";
+import { getSpotifyApi } from "@/lib/spotifyApi";
 
 function AddStreamBtn({
   streamUrl,
@@ -88,6 +90,10 @@ function AddStreamBtn({
           endpoint: `v1/tracks/${trackId}`,
           method: "GET",
         });
+
+        // const newData = new getSpotifyApi().getTrack(trackId);
+
+        // console.log(newData);
 
         if (spotifyData.error) {
           toast({

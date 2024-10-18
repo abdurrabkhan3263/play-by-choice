@@ -3,12 +3,18 @@
 import { useToast } from "@/hooks/use-toast";
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 function AuthError() {
   const pathName = useSearchParams();
   const error = Object.fromEntries(pathName).error ?? "";
   const provider = Object.fromEntries(pathName).provider ?? "";
   const { toast } = useToast();
+  const { push } = useRouter();
+
+  function redirect(path: string) {
+    push(path);
+  }
 
   useEffect(() => {
     switch (error) {
@@ -18,6 +24,7 @@ function AuthError() {
           description: "Server error. Please try again later.",
           variant: "destructive",
         });
+        redirect("/sign-in");
         break;
       case "login-with-other-provider":
         toast({
@@ -25,6 +32,7 @@ function AuthError() {
           description: `You are already registered with ${provider} provider. Please sign in with ${provider} provider.`,
           variant: "destructive",
         });
+        redirect("/sign-in");
         break;
       case "invalid-email":
         toast({
@@ -32,6 +40,7 @@ function AuthError() {
           description: `Invalid email. Please try again.`,
           variant: "destructive",
         });
+        redirect("/sign-in");
         break;
       case "invalid-password":
         toast({
@@ -39,6 +48,7 @@ function AuthError() {
           description: `Invalid password. Please try again.`,
           variant: "destructive",
         });
+        redirect("/sign-in");
         break;
       case "something-went-wrong":
         toast({
@@ -46,6 +56,7 @@ function AuthError() {
           description: `Something went wrong. Please try again later.`,
           variant: "destructive",
         });
+        redirect("/sign-in");
         break;
       default:
         break;

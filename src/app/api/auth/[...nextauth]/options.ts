@@ -1,14 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import Github from "next-auth/providers/github";
+import SpotifyProvider from "next-auth/providers/spotify";
 import Credentials from "next-auth/providers/credentials";
 import prismaClient from "@/lib/db";
 import bcrypt from "bcrypt";
+import { capitalize } from "lodash";
+import { refreshAccessToken } from "@/lib/spotifyApi";
 
 enum Provider {
   Google = "Google",
-  Github = "Github",
+  Spotify = "Spotify",
   Credential = "Credential",
 }
 
@@ -52,9 +54,12 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     }),
-    Github({
-      clientId: process.env.GITHUB_CLIENT_ID as string,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+    SpotifyProvider({
+      clientId: process.env.SPOTIFY_CLIENT_ID as string,
+      clientSecret: process.env.SPOTIFY_CLIENT_SECRET as string,
+      authorization: {
+        params: { scope: "user-read-email playlist-read-private" },
+      },
     }),
   ],
   pages: {
@@ -63,22 +68,44 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, account, profile }) {
-      // TODO :- Need to refactor this code
-      if (account && profile) {
+      if ((account && profile) || token) {
         const user = await prismaClient.user.findFirst({
           where: {
-            email: profile?.email,
+            email: profile?.email ?? token?.email,
           },
         });
 
         if (user) {
-          token.name = profile?.name ?? "";
-          token.email = profile?.email ?? "";
+          token.name =
+            profile?.name ??
+            (profile as any)?.display_name ??
+            token?.name ??
+            "";
+          token.email = profile?.email ?? token?.email ?? "";
           token.id = user.id;
           token.image = profile?.image ?? "";
+          token.accessToken = account?.access_token ?? token?.accessToken ?? "";
+          token.refreshToken =
+            account?.refresh_token ?? token?.refreshToken ?? "";
+          token.provider = account?.provider ?? "";
+          token.accessTokenExpires =
+            account?.expires_at || token?.accessTokenExpires
+              ? Date.now() +
+                (account?.expires_at ?? token?.accessTokenExpires ?? 0) * 1000
+              : undefined;
         }
       }
-      return token;
+
+      if (
+        token.provider === "spotify" &&
+        token.accessTokenExpires &&
+        Date.now() < token.accessTokenExpires
+      ) {
+        return token;
+      } else if (token.provider !== "spotify") {
+        return token;
+      }
+      return refreshAccessToken(token);
     },
     async session({ session, token }) {
       if (token) {
@@ -86,6 +113,11 @@ export const authOptions: NextAuthOptions = {
           session.user.email = token?.email ?? "";
           session.user.id = token.id ?? "";
           session.user.name = token.name ?? "";
+          session.user.accessToken = token.accessToken ?? "";
+          session.user.refreshToken = token.refreshToken ?? "";
+          session.user.provider = token.provider ?? "";
+          session.user.accessTokenExpires =
+            token.accessTokenExpires ?? undefined;
         }
       }
       return session;
@@ -109,10 +141,11 @@ export const authOptions: NextAuthOptions = {
         }
 
         if (!isUserExits) {
+          const provider = capitalize(account?.provider) as Provider;
           const createUser = await prismaClient.user.create({
             data: {
               name: profile?.name,
-              provider: account?.provider === "google" ? "Google" : "Github",
+              provider,
               email: profile?.email as string,
               image:
                 account?.provider === "google"

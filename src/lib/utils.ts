@@ -17,26 +17,6 @@ export function getStreamType(url: string) {
   return "Unknown";
 }
 
-export async function fetchSpotifyWebApi({
-  endpoint,
-  method,
-  body,
-}: {
-  endpoint: string;
-  method: string;
-  body?: [];
-}) {
-  console.log(process.env.SPOTIFY_TOKEN);
-  const res = await fetch(`https://api.spotify.com/${endpoint}`, {
-    headers: {
-      Authorization: `Bearer BQBPhPVZZhyUvr8shYA-1n1oSbjKwW4UP_BIYXlh8O2L-cUg_F5NpT7wnVF0E3L_ABwvmN6STrY3CdE0WLG7tiyKMZJ9pKN079y_7vDNpYEEk4meXTX4hFk1v6e_NuHY3uBO7rxu2IlfVX7bX-UjBzn2AeAOZL_Ge706dLxkR3j7jY4ad_GIOGHF_HIa3m2eXfPkHJhtuhqx2oDRMdJsw9mVKFumsKW_p7MVfZ79`,
-    },
-    method,
-    body: JSON.stringify(body),
-  });
-  return await res.json();
-}
-
 export function timeAgo(date: Date) {
   const now = new Date();
   date = new Date(date);

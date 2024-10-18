@@ -75,7 +75,7 @@ model Space {
 
 enum Provider {
   Google
-  Github
+  Spotify
   Credential
 }
 

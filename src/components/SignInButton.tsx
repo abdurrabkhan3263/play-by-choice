@@ -9,7 +9,7 @@ export default function SignInButtons({
   providers,
   svg,
 }: {
-  providers: "google" | "github";
+  providers: "google" | "spotify";
   svg: string;
 }) {
   return (

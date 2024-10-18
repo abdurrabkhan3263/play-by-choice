@@ -101,7 +101,7 @@ function LoginForm() {
             </Button>
             <div className="flex gap-8">
               <SignInButtons providers="google" svg="/logo/google.svg" />
-              <SignInButtons providers="github" svg="/logo/github.svg" />
+              <SignInButtons providers="spotify" svg="/logo/spotify.svg" />
             </div>
           </div>
           <div className="mt-4 text-center text-sm">

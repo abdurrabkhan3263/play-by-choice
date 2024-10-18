@@ -94,6 +94,13 @@ function MusicPlayer({
           return;
         }
         setIsPaused(state.paused);
+        if (
+          state.track_window.previous_tracks.find(
+            (x) => x.id === state.track_window.current_track.id
+          )
+        ) {
+          handleNextTrack();
+        }
       });
 
       if (toggleBtn.current) {
@@ -114,57 +121,66 @@ function MusicPlayer({
         });
       }
 
+      const handleNextTrack = async () => {
+        const { data } = await addCurrentStream({
+          spaceId,
+          streamId: streamId.current as string,
+          currentStreamId: currentStreamId.current,
+        });
+
+        if (data && data.stream) {
+          fetch(`
+https://api.spotify.com/v1/me/player/queue?uri=${data.stream.url}&device_id=${deviceId.current}`)
+            .then((data) => {
+              console.log("Track is queued:- ", data);
+            })
+            .catch((error) => {
+              console.error("Error queuing track", error);
+            });
+
+          setTrack({
+            id: data.stream.id,
+            title: data.stream.title,
+            coverImg: data.stream.smallImg,
+            popularity: data.stream.popularity,
+          });
+          streamId.current = data.stream.id;
+          currentStreamId.current = data.id;
+          await playTrack(data.stream.url);
+        } else {
+          console.log("No more tracks to play");
+        }
+      };
+
+      const playTrack = async (track: string) => {
+        try {
+          fetch(
+            `https://api.spotify.com/v1/me/player/play?device_id=${deviceId.current}`,
+            {
+              method: "PUT",
+              body: JSON.stringify({
+                uris: [track],
+              }),
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          ).then((res) => {
+            if (res.status === 204) {
+              console.log("Track is playing");
+            } else {
+              console.log("Error playing track", res);
+            }
+          });
+        } catch (error) {
+          console.log("Error changing track", error);
+        }
+      };
+
       player.connect();
     };
   }, [token]);
-
-  const handleTrackChange = async () => {
-    const { data } = await addCurrentStream({
-      spaceId,
-      streamId: streamId.current as string,
-      currentStreamId: currentStreamId.current,
-    });
-
-    if (data && data.stream) {
-      setTrack({
-        id: data.stream.id,
-        title: data.stream.title,
-        coverImg: data.stream.smallImg,
-        popularity: data.stream.popularity,
-      });
-      streamId.current = data.stream.id;
-      currentStreamId.current = data.id;
-      await playTrack(data.stream.url);
-    } else {
-      setIsError(true);
-    }
-  };
-
-  const playTrack = async (track: string) => {
-    try {
-      fetch(
-        `https://api.spotify.com/v1/me/player/play?device_id=${deviceId.current}`,
-        {
-          method: "PUT",
-          body: JSON.stringify({
-            uris: [track],
-          }),
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      ).then((res) => {
-        if (res.status === 204) {
-          console.log("Track is playing");
-        } else {
-          console.log("Error playing track", res);
-        }
-      });
-    } catch (error) {
-      console.log("Error changing track", error);
-    }
-  };
 
   return (
     <div className="fixed bottom-0 xl:px-16 py-4 flex justify-between items-center right-1/2 translate-x-1/2 translate-y-0 h-fit w-full bg-gray-800">
