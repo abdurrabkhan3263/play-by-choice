@@ -6,7 +6,7 @@ import Credentials from "next-auth/providers/credentials";
 import prismaClient from "@/lib/db";
 import bcrypt from "bcrypt";
 import { capitalize } from "lodash";
-import { refreshAccessToken } from "@/lib/spotifyApi";
+import { refreshAccessToken } from "@/lib/action/spotify";
 
 enum Provider {
   Google = "Google",
@@ -78,8 +78,8 @@ export const authOptions: NextAuthOptions = {
         if (user) {
           token.name =
             profile?.name ??
-            (profile as any)?.display_name ??
             token?.name ??
+            (profile as any)?.display_name ??
             "";
           token.email = profile?.email ?? token?.email ?? "";
           token.id = user.id;
@@ -87,7 +87,7 @@ export const authOptions: NextAuthOptions = {
           token.accessToken = account?.access_token ?? token?.accessToken ?? "";
           token.refreshToken =
             account?.refresh_token ?? token?.refreshToken ?? "";
-          token.provider = account?.provider ?? "";
+          token.provider = account?.provider ?? token?.provider ?? "";
           token.accessTokenExpires =
             account?.expires_at || token?.accessTokenExpires
               ? Date.now() +
@@ -144,13 +144,13 @@ export const authOptions: NextAuthOptions = {
           const provider = capitalize(account?.provider) as Provider;
           const createUser = await prismaClient.user.create({
             data: {
-              name: profile?.name,
+              name: profile?.name ?? (profile as any)?.display_name,
               provider,
               email: profile?.email as string,
               image:
                 account?.provider === "google"
                   ? (profile as any)?.picture
-                  : (profile as any)?.avatar_url,
+                  : (profile as any)?.images[0]?.url,
             },
           });
           if (!createUser) {

@@ -61,7 +61,7 @@ export default function SpaceCard({
                     src={createdBy.image || ""}
                     alt={createdBy.name}
                   />
-                  <AvatarFallback>{createdBy.name.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>{createdBy.name?.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="text-sm">
                   <p className="font-medium text-gray-200">Created by</p>

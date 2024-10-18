@@ -9,8 +9,7 @@ import { CreateStreamUrl } from "@/lib/zod";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { StreamType } from "@prisma/client";
-import { fetchSpotifyWebApi } from "@/lib/action/spotify";
-import { getSpotifyApi } from "@/lib/spotifyApi";
+import { getTrack } from "@/lib/action/spotify";
 
 function AddStreamBtn({
   streamUrl,
@@ -52,21 +51,20 @@ function AddStreamBtn({
       return;
     }
 
-    // Check if the user is already added a stream or not
-    const isUserAlreadyAddedStream = stream.some(
-      (s) => s.userId === data?.user?.id
-    );
+    // // Check if the user is already added a stream or not
+    // const isUserAlreadyAddedStream = stream.some(
+    //   (s) => s.userId === data?.user?.id
+    // );
 
-    if (isUserAlreadyAddedStream) {
-      toast({
-        title: "Warning",
-        description: "You can only add one stream in a space",
-        variant: "destructive",
-      });
-      return;
-    }
+    // if (isUserAlreadyAddedStream) {
+    //   toast({
+    //     title: "Warning",
+    //     description: "You can only add one stream in a space",
+    //     variant: "destructive",
+    //   });
+    //   return;
+    // }
 
-    // Extract the URL and add the new stream on the space
     const url = new URL(streamUrl);
     const type = getStreamType(streamUrl);
 
@@ -86,25 +84,16 @@ function AddStreamBtn({
 
       try {
         setLoading(true);
-        const spotifyData = await fetchSpotifyWebApi({
-          endpoint: `v1/tracks/${trackId}`,
-          method: "GET",
-        });
+        const spotifyData = await getTrack(trackId);
 
-        // const newData = new getSpotifyApi().getTrack(trackId);
-
-        // console.log(newData);
-
-        if (spotifyData.error) {
+        if (!spotifyData) {
           toast({
             title: "Error",
-            description: spotifyData.error.message,
+            description: "Failed to add stream",
             variant: "destructive",
           });
           return;
         }
-
-        console.log("Current User is:- ", data);
 
         setStream((prev) => [
           ...prev,

@@ -14,11 +14,17 @@ async function page({ params }: { params: { id: string } }) {
   );
   const currentUser = await getServerSession(authOptions);
 
-  console.log(currentUser);
+  if (!currentUser?.user.accessToken) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <h1 className="text-2xl text-white">Please login to continue</h1>
+      </div>
+    );
+  }
 
   return (
     <AudioProvider
-      token="BQDrBtsS4qLy1OINM-mC5yPXinDrep9efKTMe6SC2qaBeejGxD7ZQ593sRUWbZCHTHtkRDX3DVB3WyI0Tb7ZEF1-e0qNfaXmb-ssF11zecWh85H7CnTTawB8dnmFrR5APQZAQUpLyBJvlcpnXXdKiP5EP9PTyLbyIC6v6poxnTTtFzzrRvm7xm9taWxEbihPK-cUAx3eWdskwt6MPb10CpV5AB9zTt_DW_qTlPFU"
+      token={currentUser?.user.accessToken as string}
       spaceId={params.id}
       isAllStreamPlayed={isAllStreamPlayed}
     >

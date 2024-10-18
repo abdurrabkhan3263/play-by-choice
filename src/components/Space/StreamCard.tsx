@@ -24,7 +24,7 @@ function StreamCard({
   };
   return (
     <div
-      className="w-full mx-auto overflow-hidden rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:shadow-xl"
+      className="w-full mx-auto flex-shrink-0 overflow-hidden rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:shadow-xl"
       style={{
         background: "linear-gradient(135deg, #5A5B5A 0%, #6B6D6B 100%)",
       }}

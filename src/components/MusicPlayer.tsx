@@ -11,6 +11,7 @@ import {
 import Image from "next/image";
 import { addCurrentStream } from "@/lib/action/stream.action";
 import { Pause, Play } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 declare global {
   interface Window {
@@ -43,6 +44,7 @@ function MusicPlayer({
   const streamId = useRef(currentStream.stream.id);
   const deviceId = useRef("");
   const toggleBtn = useRef<HTMLButtonElement | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const script = document.createElement("script");
@@ -68,6 +70,7 @@ function MusicPlayer({
       player.addListener(
         "ready",
         async ({ device_id }: { device_id: string }) => {
+          console.log("Device ID has been found", device_id);
           if (currentStream && currentStream.stream) {
             setTrack({
               id: currentStream.stream.id,
@@ -80,6 +83,14 @@ function MusicPlayer({
           deviceId.current = device_id;
         }
       );
+
+      player.on("authentication_error", ({ message }) => {
+        toast({
+          title: "Authentication Error",
+          description: message,
+          variant: "destructive",
+        });
+      });
 
       player.addListener(
         "not_ready",

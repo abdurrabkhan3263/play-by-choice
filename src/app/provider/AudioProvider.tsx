@@ -18,6 +18,8 @@ async function AudioProvider({
   const currentSession = await getServerSession(authOptions);
   const currentStream = await getCurrentStream({ spaceId });
 
+  console.log("Current Stream is:- ", currentStream);
+
   // TODO : CHECK ALSO IF ANY STREAM IS NOT THERE
 
   return (

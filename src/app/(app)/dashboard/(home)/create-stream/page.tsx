@@ -115,7 +115,7 @@ function CreateStream() {
               <div className="mt-6">
                 <h2 className="text-xl font-semibold">Added Stream</h2>
                 <div
-                  className="flex mt-2 flex-col gap-y-3 flex-1 overflow-y-auto"
+                  className="custom_scroll flex mt-2 flex-col gap-y-3 flex-1 overflow-y-auto"
                   style={{ maxHeight: "300px" }}
                 >
                   {stream.length <= 0 ? (
