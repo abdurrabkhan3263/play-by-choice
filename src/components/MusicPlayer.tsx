@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 import Image from "next/image";
 import { addCurrentStream } from "@/lib/action/stream.action";
-import { Pause, Play } from "lucide-react";
+import { Loader2, Pause, Play } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 declare global {
@@ -63,14 +63,13 @@ function MusicPlayer({
       });
 
       if (!player) {
-        console.log("Player is not ready");
+        setIsError(true);
         return;
       }
 
       player.addListener(
         "ready",
         async ({ device_id }: { device_id: string }) => {
-          console.log("Device ID has been found", device_id);
           if (currentStream && currentStream.stream) {
             setTrack({
               id: currentStream.stream.id,
@@ -95,22 +94,21 @@ function MusicPlayer({
       player.addListener(
         "not_ready",
         ({ device_id }: { device_id: string }) => {
-          console.log("Device ID has gone offline", device_id);
           deviceId.current = "";
         }
       );
 
-      player.addListener("player_state_changed", (state: any) => {
+      player.addListener("player_state_changed", async (state: any) => {
         if (!state) {
           return;
         }
+
         setIsPaused(state.paused);
-        if (
-          state.track_window.previous_tracks.find(
-            (x) => x.id === state.track_window.current_track.id
-          )
-        ) {
-          handleNextTrack();
+        const trackInPrevious = state.track_window.previous_tracks.find(
+          (x) => x.id === state.track_window.current_track.id
+        );
+        if (trackInPrevious && state.paused && !state.loading) {
+          await handleNextTrack();
         }
       });
 
@@ -140,94 +138,118 @@ function MusicPlayer({
         });
 
         if (data && data.stream) {
-          fetch(`
-https://api.spotify.com/v1/me/player/queue?uri=${data.stream.url}&device_id=${deviceId.current}`)
-            .then((data) => {
-              console.log("Track is queued:- ", data);
-            })
-            .catch((error) => {
-              console.error("Error queuing track", error);
-            });
-
           setTrack({
             id: data.stream.id,
             title: data.stream.title,
             coverImg: data.stream.smallImg,
             popularity: data.stream.popularity,
           });
+
           streamId.current = data.stream.id;
           currentStreamId.current = data.id;
+
+          // const addNextTrackInQueue = await fetch(
+          //   `https://api.spotify.com/v1/me/player/queue?uri=${data.stream.url}&device_id=${deviceId.current}`,
+          //   {
+          //     method: "POST",
+          //     headers: {
+          //       Authorization: `Bearer ${token}`,
+          //     },
+          //   }
+          // );
+
           await playTrack(data.stream.url);
         } else {
           console.log("No more tracks to play");
         }
       };
 
-      const playTrack = async (track: string) => {
+      const playTrack = async (trackUri: string) => {
         try {
-          fetch(
+          const playResponse = await fetch(
             `https://api.spotify.com/v1/me/player/play?device_id=${deviceId.current}`,
             {
               method: "PUT",
               body: JSON.stringify({
-                uris: [track],
+                uris: [trackUri],
               }),
               headers: {
                 Authorization: `Bearer ${token}`,
                 "Content-Type": "application/json",
               },
             }
-          ).then((res) => {
-            if (res.status === 204) {
-              console.log("Track is playing");
-            } else {
-              console.log("Error playing track", res);
-            }
-          });
+          );
+          if (!playResponse.ok) {
+            toast({
+              title: "Error",
+              description: "Failed to play track",
+              variant: "destructive",
+            });
+          }
         } catch (error) {
-          console.log("Error changing track", error);
+          console.log("Error is:- ", error);
         }
       };
 
       player.connect();
     };
-  }, [token]);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, [currentStream, spaceId, toast, token]);
+
+  if (isError) {
+    return (
+      <div className="fixed bottom-0 xl:px-16 py-4 flex justify-between items-center right-1/2 translate-x-1/2 translate-y-0 h-fit w-full bg-gray-800">
+        <p className="text-red-500 mx-auto">Error in playing music</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="fixed bottom-0 xl:px-16 py-4 flex justify-between items-center right-1/2 translate-x-1/2 translate-y-0 h-fit w-full bg-gray-800">
-      <div className="flex gap-4 items-center">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger className="relative group rounded-md aspect-square w-[70px] h-[70px] overflow-hidden">
-              <Image
-                src={track.coverImg || "/blur.jpg"}
-                layout="fill"
-                alt={track.title}
-                className="group-hover:scale-110 transition-transform duration-200"
-                loading="lazy"
-                placeholder="blur"
-                blurDataURL={
-                  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lPAAAAA=="
-                }
-              />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{track.title}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <div>
-          <div className="flex items-center gap-4">
-            <p className="text-xl font-semibold">{track.title}</p>
-            <p className="text-sm">{track.popularity}</p>
+    <div className="fixed bottom-0 px-4 sm:flex-row md:px-8 xl:px-16 py-3 flex justify-between items-center right-1/2 translate-x-1/2 translate-y-0 h-fit w-full bg-gray-800">
+      {!isActive ? (
+        <p className="text-white">
+          <Loader2 size={24} className="animate-spin text-gray-400" />
+        </p>
+      ) : (
+        <div className="flex gap-4 items-center">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger className="relative group rounded-md aspect-square w-[50px] h-[50px] overflow-hidden">
+                <Image
+                  src={track.coverImg || "/blur.jpg"}
+                  layout="fill"
+                  alt={track.title}
+                  className="group-hover:scale-110 transition-transform duration-200"
+                  loading="lazy"
+                  placeholder="blur"
+                  blurDataURL={
+                    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lPAAAAA=="
+                  }
+                />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{track.title}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <div>
+            <div className="flex items-center gap-4">
+              <p className="text-lg font-semibold">{track.title}</p>
+              <p className="text-sm">{track.popularity}</p>
+            </div>
+            <p className="text-sm font-thin">{track.title}</p>
           </div>
-          <p className="text-sm font-thin">{track.title}</p>
         </div>
-      </div>
+      )}
       <div className="flex-1 flex flex-col items-center justify-between">
         <Button disabled={!isActive || role !== "OWNER"} ref={toggleBtn}>
           {!isPaused ? (
             <Pause size={24} className="text-white" />
+          ) : !isActive ? (
+            <Loader2 size={24} className="animate-spin text-gray-400" />
           ) : (
             <Play size={24} className="text-white" />
           )}

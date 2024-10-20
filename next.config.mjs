@@ -5,7 +5,13 @@ const nextConfig = {
       {
         hostname: "i.scdn.co",
       },
+      {
+        hostname: "mosaic.scdn.co",
+      },
     ],
+  },
+  experimental: {
+    appDir: true,
   },
 };
 

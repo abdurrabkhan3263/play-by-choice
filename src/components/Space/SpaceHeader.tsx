@@ -90,7 +90,7 @@ function SpaceHeader({ streamList }: { streamList: SpaceStreamList }) {
   return (
     <Card className="w-full bg-[#171F2D] border-none shadow-none">
       <CardContent className="p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-end gap-4">
           <div className="flex items-center gap-2" ref={editingContainer}>
             <Input
               value={spaceName}

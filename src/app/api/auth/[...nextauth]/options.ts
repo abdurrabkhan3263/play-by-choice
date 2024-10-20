@@ -51,14 +51,23 @@ export const authOptions: NextAuthOptions = {
       },
     }),
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET as string,
+      authorization: {
+        params: {
+          scope:
+            "https://www.googleapis.com/auth/youtube.readonly openid email profile",
+        },
+      },
     }),
     SpotifyProvider({
       clientId: process.env.SPOTIFY_CLIENT_ID as string,
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET as string,
       authorization: {
-        params: { scope: "user-read-email playlist-read-private" },
+        params: {
+          scope:
+            "user-read-email user-read-private user-modify-playback-state user-read-playback-state playlist-modify-public playlist-modify-private user-read-currently-playing streaming",
+        },
       },
     }),
   ],
@@ -97,15 +106,14 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (
-        token.provider === "spotify" &&
         token.accessTokenExpires &&
-        Date.now() < token.accessTokenExpires
+        Date.now() >= token.accessTokenExpires - 5 * 60 * 1000
       ) {
-        return token;
-      } else if (token.provider !== "spotify") {
-        return token;
+        if (token.provider === Provider.Spotify) {
+          return refreshAccessToken(token);
+        }
       }
-      return refreshAccessToken(token);
+      return token;
     },
     async session({ session, token }) {
       if (token) {
@@ -123,6 +131,7 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async signIn({ account, profile, credentials }) {
+      console.log("Your Profile is:- ", account);
       if (credentials) {
         return true;
       }
@@ -169,6 +178,9 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60,
+  },
+  jwt: {
+    maxAge: 60 * 60,
   },
   secret: process.env.NEXT_AUTH_SECRET,
 };

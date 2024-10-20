@@ -11,7 +11,7 @@ function NavBar() {
   const { status } = useSession();
 
   return (
-    <div className="flex justify-between items-center px-6 lg:px-8 xl:px-16 py-5">
+    <div className="flex justify-between items-center px-6 lg:px-8 xl:px-16 py-4">
       <Link href="/dashboard">
         <Image src={"/logo/music.svg"} height={38} width={38} alt="logo" />
       </Link>

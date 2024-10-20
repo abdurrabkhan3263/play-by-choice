@@ -121,7 +121,7 @@ function SpaceCard({
   return (
     <div className="relative w-full sm:w-[48%] md:w-[40%] lg:w-full p-4 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:shadow-xl bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 group">
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
-        <div className="relative aspect-square w-full lg:w-40 overflow-hidden rounded-lg bg-gray-700 shadow-inner group-hover:shadow-lg transition-all duration-300">
+        <div className="relative aspect-square w-full lg:w-28 overflow-hidden rounded-lg bg-gray-700 shadow-inner group-hover:shadow-lg transition-all duration-300">
           <Image
             src={stream.bigImg || "/No_Image_Available.jpg"}
             layout="fill"

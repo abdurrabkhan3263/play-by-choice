@@ -23,7 +23,7 @@ export default function SpaceCard({
     <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl">
       <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-        <div className="p-6 lg:p-8">
+        <div className="p-4 xl:p-6 lg:p-8">
           <div className="flex flex-col lg:flex-row items-start gap-6">
             <div
               className="relative aspect-square w-full lg:w-36 overflow-hidden rounded-lg bg-gray-700 shadow-inner"
@@ -55,7 +55,7 @@ export default function SpaceCard({
                   {dateFormat(createdAt)}
                 </time>
               </div>
-              <div className="flex items-center space-x-3 pt-4">
+              <div className="flex items-center space-x-3 pt-2 xl:pt-4">
                 <Avatar className="h-10 w-10">
                   <AvatarImage
                     src={createdBy.image || ""}

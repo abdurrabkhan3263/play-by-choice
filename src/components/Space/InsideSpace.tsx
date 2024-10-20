@@ -92,9 +92,11 @@ function InsideSpace({
           )}
         </div>
       </div>
-      <div className="col-span-1 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4">
-        <h1 className="text-2xl font-semibold">Add New Stream</h1>
-        <div className="mt-3 flex flex-col gap-4">
+      <div className="col-span-1 h-fit mb-12 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4">
+        <h1 className="text-2xl font-semibold hidden md:block">
+          Add New Stream
+        </h1>
+        <div className="mt-3 flex flex-row  md:flex-col gap-4">
           <Input
             placeholder="Enter stream URL"
             value={streamUrl}

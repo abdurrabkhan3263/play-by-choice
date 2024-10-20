@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -10,6 +10,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
@@ -30,7 +37,6 @@ function CreateStream() {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { toast } = useToast();
   const router = useRouter();
-
   const form = useForm<z.infer<typeof CreateStreamSchema>>({
     resolver: zodResolver(CreateStreamSchema),
     defaultValues: {
@@ -61,7 +67,6 @@ function CreateStream() {
       form.reset();
     }
   };
-
   return (
     <div className="flex justify-center items-center fixed h-screen w-screen bg-[#3a3b3a98] backdrop-blur-sm filter top-1/2 -translate-y-1/2 right-1/2 translate-x-1/2">
       <div className="w-[600px] max-h-[80%] p-4 rounded-xl border bg-[#3a3b3a]">
@@ -89,12 +94,15 @@ function CreateStream() {
                   <FormItem>
                     <FormLabel>Stream Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter space name" {...field} />
+                      <div className="flex items-center gap-3">
+                        <Input placeholder="Enter space name" {...field} />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
               <div className="mt-2">
                 <FormLabel>Stream Url</FormLabel>
                 <div className="flex mt-2 gap-2.5 items-center">
@@ -111,7 +119,6 @@ function CreateStream() {
                   />
                 </div>
               </div>
-
               <div className="mt-6">
                 <h2 className="text-xl font-semibold">Added Stream</h2>
                 <div
@@ -123,7 +130,15 @@ function CreateStream() {
                   ) : (
                     stream.map(
                       (
-                        { title, bigImg, createdAt, type, extractedId },
+                        {
+                          title,
+                          bigImg,
+                          createdAt,
+                          type,
+                          extractedId,
+                          itemType,
+                          listSongs,
+                        },
                         index
                       ) => (
                         <StreamCard
@@ -134,6 +149,8 @@ function CreateStream() {
                           key={index}
                           setStream={setStream}
                           id={extractedId}
+                          itemType={itemType}
+                          listSongs={listSongs}
                         />
                       )
                     )

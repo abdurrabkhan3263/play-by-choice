@@ -13,6 +13,9 @@ declare type CreateStreamType = {
   smallImg: string;
   bigImg: string;
   createdAt: Date;
+  itemType: string;
+  listSongs?: CreateStreamType[];
+  artists?: string;
   type: StreamType;
   popularity?: number;
   id?: string;

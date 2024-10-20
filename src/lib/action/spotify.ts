@@ -62,26 +62,89 @@ export async function getTrack(trackId: string) {
   }
 }
 
+export async function getAlbum(albumId: string) {
+  await initializeSpotifyToken();
+  try {
+    const data = await spotifyApi.getAlbum(albumId);
+    console.log("Data is:- ", data);
+    return data.body;
+  } catch (error) {
+    console.error("Error fetching album:", error);
+    throw error;
+  }
+}
+
+export async function getPlaylist(playlistId: string) {
+  await initializeSpotifyToken();
+  try {
+    const data = await spotifyApi.getPlaylist(playlistId);
+    console.log("Data is:- ", data);
+    return data.body;
+  } catch (error) {
+    console.error("Error fetching album:", error);
+    throw error;
+  }
+}
+
+export async function playNextTrack() {
+  await initializeSpotifyToken();
+  try {
+    const data = await spotifyApi.skipToNext();
+    console.log("Playing next track:", data.body);
+    return data.body;
+  } catch (error) {
+    console.error("Error playing next track:", error);
+    throw error;
+  }
+}
+
+export async function playNewTrack({
+  trackUri,
+  deviceId,
+}: {
+  trackUri: string;
+  deviceId: string;
+}) {
+  await initializeSpotifyToken();
+  try {
+    const data = await spotifyApi.play({
+      uris: [trackUri],
+      device_id: deviceId,
+    });
+    return data.body;
+  } catch (error) {
+    console.error("Error playing track:", error);
+    throw error;
+  }
+}
+
 export async function refreshAccessToken(token: JWT) {
   try {
     const url = `https://accounts.spotify.com/api/token`;
+    const basicAuth = Buffer.from(
+      `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
+    ).toString("base64");
+
     const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Basic ${Buffer.from(
-          process.env.SPOTIFY_CLIENT_ID +
-            ":" +
-            process.env.SPOTIFY_CLIENT_SECRET
-        ).toString("base64")}`,
+        Authorization: `Basic ${basicAuth}`,
       },
       body: new URLSearchParams({
         grant_type: "refresh_token",
-        refresh_token: token.refreshToken || "",
+        refresh_token: token.refreshToken as string,
       }),
     });
 
+    console.log("\n\n\n\n\n\n\n\n");
+    console.log("Refreshed access token:", response.status);
+    console.log("\n\n\n\n\n\n\n\n");
+
     const refreshedTokens = await response.json();
+    if (!response.ok) {
+      throw refreshAccessToken;
+    }
 
     return {
       ...token,
