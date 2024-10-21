@@ -37,6 +37,7 @@ function MusicPlayer({
     title: "",
     coverImg: "",
     popularity: 0,
+    artist: "",
   });
   const [isActive, setActive] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -76,6 +77,7 @@ function MusicPlayer({
               title: currentStream.stream.title,
               coverImg: currentStream.stream.smallImg,
               popularity: currentStream.stream.popularity,
+              artist: currentStream.stream.artist,
             });
           }
           setActive(true);
@@ -117,7 +119,7 @@ function MusicPlayer({
 
         toggleBtn.current.addEventListener("click", () => {
           if (!isPlaying) {
-            playTrack(currentStream.stream.url)
+            playTrack(currentStream.stream.extractedId)
               .then(() => {
                 isPlaying = true;
               })
@@ -143,6 +145,7 @@ function MusicPlayer({
             title: data.stream.title,
             coverImg: data.stream.smallImg,
             popularity: data.stream.popularity,
+            artist: data.stream.artist,
           });
 
           streamId.current = data.stream.id;
@@ -164,14 +167,14 @@ function MusicPlayer({
         }
       };
 
-      const playTrack = async (trackUri: string) => {
+      const playTrack = async (trackId: string) => {
         try {
           const playResponse = await fetch(
             `https://api.spotify.com/v1/me/player/play?device_id=${deviceId.current}`,
             {
               method: "PUT",
               body: JSON.stringify({
-                uris: [trackUri],
+                uris: [`spotify:track:${trackId}`],
               }),
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -180,9 +183,10 @@ function MusicPlayer({
             }
           );
           if (!playResponse.ok) {
+            const resData = await playResponse.json();
             toast({
               title: "Error",
-              description: "Failed to play track",
+              description: resData?.error.message ?? "Failed to play track",
               variant: "destructive",
             });
           }
@@ -240,7 +244,7 @@ function MusicPlayer({
               <p className="text-lg font-semibold">{track.title}</p>
               <p className="text-sm">{track.popularity}</p>
             </div>
-            <p className="text-sm font-thin">{track.title}</p>
+            <p className="text-sm font-thin">{track?.artist}</p>
           </div>
         </div>
       )}

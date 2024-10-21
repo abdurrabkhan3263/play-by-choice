@@ -5,14 +5,20 @@ import { Button } from "./ui/button";
 import { playAgainStream } from "@/lib/action/stream.action";
 import { useToast } from "@/hooks/use-toast";
 
-function PlayAgain({ spaceId }: { spaceId: string }) {
+function PlayAgain({
+  spaceId,
+  playAgain,
+}: {
+  spaceId: string;
+  playAgain: boolean;
+}) {
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
   const handlePlayAgain = async () => {
     setSubmitting(true);
     try {
-      await playAgainStream({ spaceId: spaceId });
+      await playAgainStream({ spaceId: spaceId, allPlayed: playAgain });
     } catch (error) {
       toast({
         title: "Error",
@@ -27,7 +33,7 @@ function PlayAgain({ spaceId }: { spaceId: string }) {
   return (
     <div className="fixed bottom-0 xl:px-16 py-4 flex justify-center items-center right-1/2 translate-x-1/2 translate-y-0 h-fit w-full bg-gray-800">
       <Button onClick={handlePlayAgain} disabled={submitting}>
-        Play Again
+        Play {playAgain && "again"}
       </Button>
     </div>
   );

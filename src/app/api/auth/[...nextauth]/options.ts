@@ -2,57 +2,54 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import SpotifyProvider from "next-auth/providers/spotify";
-import Credentials from "next-auth/providers/credentials";
 import prismaClient from "@/lib/db";
-import bcrypt from "bcrypt";
 import { capitalize } from "lodash";
 import { refreshAccessToken } from "@/lib/action/spotify";
 
 enum Provider {
   Google = "Google",
   Spotify = "Spotify",
-  Credential = "Credential",
 }
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    Credentials({
-      name: "credential",
-      credentials: {
-        email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials: any): Promise<any> {
-        if (credentials) {
-          const user = await prismaClient.user.findUnique({
-            where: { email: credentials?.email },
-          });
-          if (user) {
-            if (user.provider !== Provider.Credential) {
-              throw new Error(
-                `login-with-other-provider&provider=${user.provider}`
-              );
-            }
-            const isValid = await bcrypt.compare(
-              credentials.password,
-              user.password as string
-            );
-            if (isValid) {
-              return user;
-            } else {
-              throw new Error("invalid-password");
-            }
-          } else {
-            throw new Error("invalid-email");
-          }
-        } else {
-          return null;
-        }
-      },
-    }),
+    // Credentials({
+    //   name: "credential",
+    //   credentials: {
+    //     email: { label: "Email", type: "text" },
+    //     password: { label: "Password", type: "password" },
+    //   },
+    //   async authorize(credentials: any): Promise<any> {
+    //     if (credentials) {
+    //       const user = await prismaClient.user.findUnique({
+    //         where: { email: credentials?.email },
+    //       });
+    //       if (user) {
+    //         if (user.provider !== Provider.Credential) {
+    //           throw new Error(
+    //             `login-with-other-provider&provider=${user.provider}`
+    //           );
+    //         }
+    //         const isValid = await bcrypt.compare(
+    //           credentials.password,
+    //           user.password as string
+    //         );
+    //         if (isValid) {
+    //           return user;
+    //         } else {
+    //           throw new Error("invalid-password");
+    //         }
+    //       } else {
+    //         throw new Error("invalid-email");
+    //       }
+    //     } else {
+    //       return null;
+    //     }
+    //   },
+    // }),
     GoogleProvider({
-      clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET as string,
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
       authorization: {
         params: {
           scope:
@@ -130,11 +127,7 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
-    async signIn({ account, profile, credentials }) {
-      console.log("Your Profile is:- ", account);
-      if (credentials) {
-        return true;
-      }
+    async signIn({ account, profile }) {
       try {
         const isUserExits = await prismaClient.user.findFirst({
           where: {
@@ -153,7 +146,8 @@ export const authOptions: NextAuthOptions = {
           const provider = capitalize(account?.provider) as Provider;
           const createUser = await prismaClient.user.create({
             data: {
-              name: profile?.name ?? (profile as any)?.display_name,
+              name:
+                profile?.name ?? ((profile as any)?.display_name as Provider),
               provider,
               email: profile?.email as string,
               image:

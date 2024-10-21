@@ -5,6 +5,7 @@ import { CreateStreamType } from "@/types";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
+import { capitalize } from "lodash";
 
 export async function createSpace({
   data,
@@ -23,6 +24,10 @@ export async function createSpace({
         spaceName: data.spaceName,
         streams: stream,
         email: currentUser?.user?.email,
+        type:
+          capitalize(currentUser?.user?.provider) === "Google"
+            ? "Youtube"
+            : "Spotify",
       }),
       headers: {
         "Content-Type": "application/json",

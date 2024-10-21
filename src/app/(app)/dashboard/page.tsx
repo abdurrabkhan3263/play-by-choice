@@ -2,7 +2,7 @@ import CreateSpaceButton from "@/components/Space/CreateSpaceButton";
 import ListStreams from "@/components/Space/ListSpace";
 import React from "react";
 
-function Dashboard() {
+async function Dashboard() {
   return (
     <div className="flex justify-center">
       <div

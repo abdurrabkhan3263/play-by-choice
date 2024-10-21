@@ -66,7 +66,6 @@ export async function getAlbum(albumId: string) {
   await initializeSpotifyToken();
   try {
     const data = await spotifyApi.getAlbum(albumId);
-    console.log("Data is:- ", data);
     return data.body;
   } catch (error) {
     console.error("Error fetching album:", error);
@@ -78,7 +77,6 @@ export async function getPlaylist(playlistId: string) {
   await initializeSpotifyToken();
   try {
     const data = await spotifyApi.getPlaylist(playlistId);
-    console.log("Data is:- ", data);
     return data.body;
   } catch (error) {
     console.error("Error fetching album:", error);
@@ -90,7 +88,6 @@ export async function playNextTrack() {
   await initializeSpotifyToken();
   try {
     const data = await spotifyApi.skipToNext();
-    console.log("Playing next track:", data.body);
     return data.body;
   } catch (error) {
     console.error("Error playing next track:", error);
@@ -136,10 +133,6 @@ export async function refreshAccessToken(token: JWT) {
         refresh_token: token.refreshToken as string,
       }),
     });
-
-    console.log("\n\n\n\n\n\n\n\n");
-    console.log("Refreshed access token:", response.status);
-    console.log("\n\n\n\n\n\n\n\n");
 
     const refreshedTokens = await response.json();
     if (!response.ok) {

@@ -6,7 +6,12 @@ import { StreamTypeApi } from "@/types";
 import { getServerSession } from "next-auth";
 import React from "react";
 
-async function page({ params }: { params: { id: string } }) {
+async function page({
+  params,
+}: {
+  params: { id: string };
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
   const { id } = params;
   const listStream = await getSpaceById({ id });
   const isAllStreamPlayed = listStream.Stream?.every(
@@ -27,6 +32,7 @@ async function page({ params }: { params: { id: string } }) {
       token={currentUser?.user.accessToken as string}
       spaceId={params.id}
       isAllStreamPlayed={isAllStreamPlayed}
+      type={listStream.type}
     >
       <div
         className="grid w-full px-4 lg:px-8 text-white xl:px-16 mt-6 gap-4 grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"

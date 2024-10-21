@@ -198,7 +198,13 @@ export async function addCurrentStream({
   }
 }
 
-export async function playAgainStream({ spaceId }: { spaceId: string }) {
+export async function playAgainStream({
+  spaceId,
+  allPlayed,
+}: {
+  spaceId: string;
+  allPlayed: boolean;
+}) {
   try {
     const headersList = headers();
     const host = headersList.get("host");
@@ -215,6 +221,7 @@ export async function playAgainStream({ spaceId }: { spaceId: string }) {
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ allPlayed }),
       }
     );
 

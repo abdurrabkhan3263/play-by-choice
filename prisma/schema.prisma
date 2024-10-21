@@ -30,6 +30,7 @@ model Stream {
   title         String         @default("")
   smallImg      String         @default("")
   bigImg        String         @default("")
+  artist        String?        @default("")
   active        Boolean        @default(false)
   played        Boolean        @default(false)
   playedTs      DateTime?
@@ -41,6 +42,7 @@ model Stream {
   spaceId       String
   CurrentStream CurrentStream?
   popularity    Int?           @default(0)
+  duration      Int?           @default(0)
 }
 
 model CurrentStream {
@@ -71,12 +73,12 @@ model Space {
   userId        String
   name          String?         @default("Untitled")
   createdAt     DateTime        @default(now())
+  type          StreamType
 }
 
 enum Provider {
   Google
   Spotify
-  Credential
 }
 
 enum StreamType {

@@ -10,8 +10,7 @@ import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { StreamType as PrismaStreamType, StreamType } from "@prisma/client";
 import { getAlbum, getPlaylist, getTrack } from "@/lib/action/spotify";
-import { getVideoInfo, oauthSignIn } from "@/lib/action/youtube";
-import { signInWithGoogle } from "@/lib/action/auth";
+import { getVideoInfo } from "@/lib/action/youtube";
 const SONG_LIMIT = 100;
 
 function AddStreamBtn({
@@ -71,24 +70,19 @@ function AddStreamBtn({
       return;
     }
 
-    // // Check if the user is already added a stream or not
-    // const isUserAlreadyAddedStream = stream.some(
-    //   (s) => s.userId === data?.user?.id
-    // );
-
-    // if (isUserAlreadyAddedStream) {
-    //   toast({
-    //     title: "Warning",
-    //     description: "You can only add one stream in a space",
-    //     variant: "destructive",
-    //   });
-    //   return;
-    // }
-
     const url = new URL(streamUrl);
     const type = getStreamType(streamUrl);
 
     if (type === "Youtube") {
+      if (data?.user?.provider !== "google") {
+        toast({
+          title: "Error",
+          description: "You need to connect with Google to add Youtube stream",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const ID = url.searchParams.get("v");
 
       if (!ID) {
@@ -109,10 +103,56 @@ function AddStreamBtn({
         });
         return;
       }
-      signInWithGoogle();
-      // const youtubeData = await getVideoInfo(ID);
-      // console.log("Youtube Data", youtubeData);
+      try {
+        setLoading(true);
+        const youtubeData = await getVideoInfo(
+          ID,
+          data?.user?.accessToken as string
+        );
+        if (!youtubeData) {
+          toast({
+            title: "Error",
+            description: "Failed to add stream",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const dataSnippet = youtubeData?.items[0]?.snippet;
+
+        setStream((prev) => [
+          ...prev,
+          {
+            itemType: "track",
+            title: dataSnippet?.title,
+            type: type,
+            extractedId: ID,
+            smallImg: dataSnippet?.thumbnails?.medium.url,
+            bigImg: dataSnippet?.thumbnails?.high.url,
+            createdAt: new Date(),
+            url: streamUrl,
+            userId: data?.user?.id,
+          },
+        ]);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: `Failed to add Youtube stream: ${error}`,
+          variant: "destructive",
+        });
+        return;
+      } finally {
+        setStreamUrl("");
+        setLoading(false);
+      }
     } else if (type === "Spotify") {
+      if (data?.user?.provider !== "spotify") {
+        toast({
+          title: "Error",
+          description: "You need to connect with Spotify to add Spotify stream",
+          variant: "destructive",
+        });
+      }
       const pathNameVar = url.pathname.split("/");
       const itemId = pathNameVar[2];
       const itemType = pathNameVar[1];
@@ -164,13 +204,16 @@ function AddStreamBtn({
               url: streamUrl,
               popularity: spotifyData?.popularity,
               userId: data?.user?.id,
+              artist: spotifyData?.artists
+                .map((artist) => artist.name)
+                .join(", "),
             },
           ]);
         } else if (itemType === "album" || itemType === "playlist") {
           let albumData;
           if (itemType === "album") {
             albumData = await getAlbum(itemId);
-          } else {
+          } else if (itemType === "playlist") {
             albumData = await getPlaylist(itemId);
           }
 
@@ -207,7 +250,7 @@ function AddStreamBtn({
                 url: streamUrl,
                 popularity: trackData?.popularity,
                 userId: data?.user?.id,
-                artists: trackData?.artists
+                artist: trackData?.artists
                   .map((artist) => artist.name)
                   .join(", "),
               } as CreateStreamType;
@@ -221,11 +264,11 @@ function AddStreamBtn({
               title: albumData?.name,
               type: type as PrismaStreamType,
               extractedId: itemId,
-              smallImg: albumData?.images[2]?.url,
-              bigImg: albumData?.images[1]?.url,
+              smallImg: albumData?.images[2]?.url ?? albumData?.images[1]?.url,
+              bigImg: albumData?.images[1]?.url ?? albumData?.images[0]?.url,
               createdAt: new Date(),
               url: streamUrl,
-              popularity: albumData?.popularity,
+              popularity: (albumData as any)?.popularity,
               userId: data?.user?.id,
               listSongs: listSongs as CreateStreamType[],
             },
@@ -263,7 +306,7 @@ function AddStreamBtn({
       onClick={CreateStream}
       type="button"
       className="flex gap-2"
-      disabled={loading || status === "authenticated" ? false : true}
+      disabled={loading || status === "loading"}
     >
       Add Stream
       {loading && (

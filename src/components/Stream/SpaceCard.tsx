@@ -63,7 +63,6 @@ function SpaceCard({
         setIsOpen(false);
       }
     } catch (error) {
-      console.log("Error happened", error);
       setIsDeleting(false);
     }
   };

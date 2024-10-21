@@ -76,6 +76,7 @@ export async function GET(
         select: {
           id: true,
           bigImg: true,
+          type: true,
         },
       },
     },

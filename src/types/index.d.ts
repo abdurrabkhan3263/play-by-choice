@@ -14,9 +14,9 @@ declare type CreateStreamType = {
   bigImg: string;
   createdAt: Date;
   itemType: string;
+  type: StreamType;
   listSongs?: CreateStreamType[];
   artists?: string;
-  type: StreamType;
   popularity?: number;
   id?: string;
   active?: boolean;
@@ -39,6 +39,7 @@ declare type SpaceType = {
   Stream: {
     id: string;
     bigImg: string;
+    type: StreamType;
   }[];
 };
 

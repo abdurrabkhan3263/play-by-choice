@@ -18,6 +18,8 @@ export async function GET(
               smallImg: true,
               popularity: true,
               url: true,
+              artist: true,
+              extractedId: true,
             },
           },
           space: {
@@ -33,48 +35,11 @@ export async function GET(
       });
 
       if (!currentStream) {
-        const newStream = await prisma.stream.findFirst({
-          where: {
-            spaceId: space_id,
-            played: false,
-          },
-          orderBy: { Upvote: { _count: "desc" } },
-        });
-
-        if (newStream) {
-          const newCurrentStream = await prisma.currentStream.create({
-            data: { streamId: newStream.id, spaceId: space_id },
-            select: {
-              stream: {
-                select: {
-                  id: true,
-                  title: true,
-                  smallImg: true,
-                  popularity: true,
-                  url: true,
-                },
-              },
-              space: {
-                select: {
-                  createdBy: true,
-                },
-              },
-            },
-          });
-
-          await prisma.stream.update({
-            where: { id: newStream.id, spaceId: space_id },
-            data: { active: true },
-          });
-
-          return {
-            status: "Success",
-            message: "Current stream found",
-            data: newCurrentStream,
-          };
-        }
-
-        return { status: "Success", message: "No more streams available" };
+        return {
+          status: "Not Found",
+          message: "No current stream found",
+          statusCode: 404,
+        };
       }
 
       return {
@@ -149,6 +114,8 @@ export async function POST(
               smallImg: true,
               popularity: true,
               url: true,
+              artist: true,
+              extractedId: true,
             },
           },
           space: {
@@ -192,12 +159,15 @@ export async function PATCH(
   { params }: { params: { space_id: string } }
 ) {
   const { space_id } = params;
+  const { allPlayed } = await req.json();
   try {
     const result = await prismaClient.$transaction(async (prisma) => {
-      await prisma.stream.updateMany({
-        where: { spaceId: space_id },
-        data: { played: false },
-      });
+      if (allPlayed) {
+        await prisma.stream.updateMany({
+          where: { spaceId: space_id },
+          data: { played: false },
+        });
+      }
 
       const findStream = await prisma.stream.findFirst({
         where: { spaceId: space_id, played: false },
@@ -217,6 +187,8 @@ export async function PATCH(
               smallImg: true,
               popularity: true,
               url: true,
+              artist: true,
+              extractedId: true,
             },
           },
           space: {

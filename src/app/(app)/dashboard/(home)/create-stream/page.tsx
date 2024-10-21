@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -10,13 +10,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
@@ -67,6 +60,7 @@ function CreateStream() {
       form.reset();
     }
   };
+
   return (
     <div className="flex justify-center items-center fixed h-screen w-screen bg-[#3a3b3a98] backdrop-blur-sm filter top-1/2 -translate-y-1/2 right-1/2 translate-x-1/2">
       <div className="w-[600px] max-h-[80%] p-4 rounded-xl border bg-[#3a3b3a]">

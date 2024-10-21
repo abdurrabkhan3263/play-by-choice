@@ -8,10 +8,10 @@ const nextConfig = {
       {
         hostname: "mosaic.scdn.co",
       },
+      {
+        hostname: "i.ytimg.com",
+      },
     ],
-  },
-  experimental: {
-    appDir: true,
   },
 };
 

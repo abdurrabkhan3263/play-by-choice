@@ -98,7 +98,6 @@ export async function DELETE(
     }
     return NextResponse.json({ status: "Success", message: "Removed upvote" });
   } catch (error) {
-    console.log("Error happened", error);
     return NextResponse.json(
       {
         status: "Error",

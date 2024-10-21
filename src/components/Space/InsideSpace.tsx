@@ -41,7 +41,6 @@ function InsideSpace({
           });
         }
       } catch (error) {
-        console.log("Error happened", error);
         toast({
           title: "Error",
           description:

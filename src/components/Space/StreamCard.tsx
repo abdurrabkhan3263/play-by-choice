@@ -32,7 +32,7 @@ function StreamCard({
   };
 
   useEffect(() => {
-    if (itemType !== "track" && listSongs?.length === 0) {
+    if (listSongs && itemType !== "track" && listSongs?.length === 0) {
       setStream((prev) => prev.filter((s) => s.extractedId !== id));
     }
   }, [listSongs]);
@@ -62,7 +62,9 @@ function StreamCard({
               {itemType === "track" && (
                 <>
                   <p>{type}</p>
-                  <Play size={16} className="text-gray-400" />
+                  {type !== "Youtube" && (
+                    <Play size={16} className="text-gray-400" />
+                  )}
                 </>
               )}
             </div>
@@ -71,6 +73,7 @@ function StreamCard({
           <Button
             variant="ghost"
             size="icon"
+            type="button"
             onClick={removeStream}
             className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors duration-200"
             aria-label={isExpanded ? "Collapse playlist" : "Expand playlist"}
@@ -95,7 +98,7 @@ function StreamCard({
           )}
         </div>
         {isExpanded && listSongs && (
-          <ScrollArea className="h-64 mt-4 pr-4 pb-6">
+          <ScrollArea className="h-64 mt-4 pr-4">
             {listSongs.map((song) => (
               <div
                 key={song.extractedId}
@@ -111,6 +114,7 @@ function StreamCard({
                 <Button
                   variant="ghost"
                   size="icon"
+                  type="button"
                   onClick={() => {
                     setStream((prev) =>
                       prev.map((s) => {
