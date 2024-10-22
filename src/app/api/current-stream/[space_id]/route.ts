@@ -33,12 +33,16 @@ export async function GET(
           },
         },
       });
+      const findAllStream = await prisma.stream.findMany({
+        where: { spaceId: space_id },
+      });
 
       if (!currentStream) {
         return {
           status: "Not Found",
           message: "No current stream found",
           statusCode: 404,
+          isStreamAvailable: findAllStream.length > 0,
         };
       }
 
@@ -46,6 +50,7 @@ export async function GET(
         status: "Success",
         message: "Current stream found",
         data: currentStream,
+        isStreamAvailable: true,
       };
     });
     return NextResponse.json(result, { status: 200 });
@@ -101,7 +106,12 @@ export async function POST(
       });
 
       if (!nextStream) {
-        return { status: "Success", message: "No more streams available" };
+        return {
+          status: "Success",
+          message: "No more streams available",
+          statusCode: 404,
+          isStreamAvailable: false,
+        };
       }
 
       const newCurrentStream = await prisma.currentStream.create({
@@ -135,12 +145,12 @@ export async function POST(
         status: "Success",
         message: "Current stream updated",
         data: newCurrentStream,
+        isStreamAvailable: true,
       };
     });
 
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
-    console.error("Error in stream management:", error);
     return NextResponse.json(
       {
         status: "Error",
@@ -175,7 +185,11 @@ export async function PATCH(
       });
 
       if (!findStream) {
-        return { status: "Success", message: "No more streams available" };
+        return {
+          status: "Success",
+          message: "No more streams available",
+          isStreamAvailable: false,
+        };
       }
       const newCurrentStream = await prisma.currentStream.create({
         data: { streamId: findStream.id, spaceId: space_id },
@@ -208,6 +222,7 @@ export async function PATCH(
         status: "Success",
         message: "Current stream updated",
         data: newCurrentStream,
+        isStreamAvailable: true,
       };
     });
     return NextResponse.json(result, { status: 200 });

@@ -2,7 +2,7 @@
 
 import { useToast } from "@/hooks/use-toast";
 import { getStreamType } from "@/lib/utils";
-import { CreateStreamType } from "@/types";
+import { AddStreamBtnProps, CreateStreamType } from "@/types";
 import React from "react";
 import { Button } from "./ui/button";
 import { CreateStreamUrl } from "@/lib/zod";
@@ -18,20 +18,15 @@ function AddStreamBtn({
   setStreamUrl,
   setStream,
   stream,
-}: {
-  streamUrl: string;
-  setStreamUrl: React.Dispatch<React.SetStateAction<string>>;
-  setStream: React.Dispatch<React.SetStateAction<CreateStreamType[]>>;
-  stream: CreateStreamType[];
-}) {
+}: AddStreamBtnProps) {
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
   const { data, status } = useSession();
 
   async function CreateStream() {
+    // Check if the URL is valid using Zod and Check if the stream already exist and Check if the number of songs is not more than 100
     const typeChecking = CreateStreamUrl.safeParse(streamUrl);
 
-    // Check if the URL is valid using Zod
     if (!typeChecking.success) {
       toast({
         title: "Error",
@@ -70,8 +65,15 @@ function AddStreamBtn({
       return;
     }
 
+    // --> End
+
+    // Get the stream type and the ID
+
     const url = new URL(streamUrl);
     const type = getStreamType(streamUrl);
+    let streamData: CreateStreamType = {} as CreateStreamType;
+
+    // Get the stream data based on the type
 
     if (type === "Youtube") {
       if (data?.user?.provider !== "google") {
@@ -117,23 +119,19 @@ function AddStreamBtn({
           });
           return;
         }
-
         const dataSnippet = youtubeData?.items[0]?.snippet;
 
-        setStream((prev) => [
-          ...prev,
-          {
-            itemType: "track",
-            title: dataSnippet?.title,
-            type: type,
-            extractedId: ID,
-            smallImg: dataSnippet?.thumbnails?.medium.url,
-            bigImg: dataSnippet?.thumbnails?.high.url,
-            createdAt: new Date(),
-            url: streamUrl,
-            userId: data?.user?.id,
-          },
-        ]);
+        streamData = {
+          itemType: "track",
+          title: dataSnippet?.title,
+          type: type,
+          extractedId: ID,
+          smallImg: dataSnippet?.thumbnails?.medium.url,
+          bigImg: dataSnippet?.thumbnails?.high.url,
+          createdAt: new Date(),
+          url: streamUrl,
+          userId: data?.user?.id,
+        };
       } catch (error) {
         toast({
           title: "Error",
@@ -152,6 +150,7 @@ function AddStreamBtn({
           description: "You need to connect with Spotify to add Spotify stream",
           variant: "destructive",
         });
+        return;
       }
       const pathNameVar = url.pathname.split("/");
       const itemId = pathNameVar[2];
@@ -169,7 +168,6 @@ function AddStreamBtn({
 
       try {
         setLoading(true);
-
         if (itemType === "track") {
           const spotifyData = await getTrack(itemId);
 
@@ -191,30 +189,37 @@ function AddStreamBtn({
             return;
           }
 
-          setStream((prev) => [
-            ...prev,
-            {
-              itemType: "track",
-              title: spotifyData?.name,
-              type: type as PrismaStreamType,
-              extractedId: itemId,
-              smallImg: spotifyData?.album?.images[2]?.url,
-              bigImg: spotifyData?.album?.images[0]?.url,
-              createdAt: new Date(),
-              url: streamUrl,
-              popularity: spotifyData?.popularity,
-              userId: data?.user?.id,
-              artist: spotifyData?.artists
-                .map((artist) => artist.name)
-                .join(", "),
-            },
-          ]);
+          streamData = {
+            itemType: "track",
+            title: spotifyData?.name,
+            type: type as PrismaStreamType,
+            extractedId: itemId,
+            smallImg: spotifyData?.album?.images[2]?.url,
+            bigImg: spotifyData?.album?.images[0]?.url,
+            createdAt: new Date(),
+            url: streamUrl,
+            popularity: spotifyData?.popularity,
+            userId: data?.user?.id,
+            artist: spotifyData?.artists
+              .map((artist) => artist.name)
+              .join(", "),
+          };
         } else if (itemType === "album" || itemType === "playlist") {
           let albumData;
+
           if (itemType === "album") {
             albumData = await getAlbum(itemId);
           } else if (itemType === "playlist") {
             albumData = await getPlaylist(itemId);
+          }
+
+          if (!albumData?.tracks?.items) {
+            toast({
+              title: "Error",
+              description: "Failed to add stream",
+              variant: "destructive",
+            });
+            return;
           }
 
           if (totalSongs + albumData?.tracks?.items.length > SONG_LIMIT) {
@@ -257,22 +262,19 @@ function AddStreamBtn({
             })
           )) as CreateStreamType[];
 
-          setStream((prev) => [
-            ...prev,
-            {
-              itemType: "album",
-              title: albumData?.name,
-              type: type as PrismaStreamType,
-              extractedId: itemId,
-              smallImg: albumData?.images[2]?.url ?? albumData?.images[1]?.url,
-              bigImg: albumData?.images[1]?.url ?? albumData?.images[0]?.url,
-              createdAt: new Date(),
-              url: streamUrl,
-              popularity: (albumData as any)?.popularity,
-              userId: data?.user?.id,
-              listSongs: listSongs as CreateStreamType[],
-            },
-          ]);
+          streamData = {
+            itemType: "album",
+            title: albumData?.name,
+            type: type as PrismaStreamType,
+            extractedId: itemId,
+            smallImg: albumData?.images[2]?.url ?? albumData?.images[1]?.url,
+            bigImg: albumData?.images[1]?.url ?? albumData?.images[0]?.url,
+            createdAt: new Date(),
+            url: streamUrl,
+            popularity: (albumData as { popularity?: number })?.popularity,
+            userId: data?.user?.id,
+            listSongs: listSongs as CreateStreamType[],
+          };
         } else {
           toast({
             title: "Error",
@@ -298,6 +300,10 @@ function AddStreamBtn({
         variant: "destructive",
       });
       return;
+    }
+
+    if (Object.keys(streamData).length > 0) {
+      setStream((prev) => [...prev, streamData]);
     }
   }
 

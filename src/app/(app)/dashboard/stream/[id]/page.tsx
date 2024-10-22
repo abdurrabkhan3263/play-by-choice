@@ -2,6 +2,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import AudioProvider from "@/app/provider/AudioProvider";
 import InsideSpace from "@/components/Space/InsideSpace";
 import { getSpaceById } from "@/lib/action/space.action";
+import { getCurrentStream } from "@/lib/action/stream.action";
 import { StreamTypeApi } from "@/types";
 import { getServerSession } from "next-auth";
 import React from "react";
@@ -26,6 +27,7 @@ async function page({
       </div>
     );
   }
+  const currentStream = await getCurrentStream({ spaceId: params.id });
 
   return (
     <AudioProvider
@@ -33,12 +35,18 @@ async function page({
       spaceId={params.id}
       isAllStreamPlayed={isAllStreamPlayed}
       type={listStream.type}
+      currentStream={currentStream}
     >
       <div
         className="grid w-full px-4 lg:px-8 text-white xl:px-16 mt-6 gap-4 grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
         style={{ height: "calc(100vh - 128px)" }}
       >
-        <InsideSpace streamList={listStream} spaceId={listStream.id} />
+        <InsideSpace
+          streamList={listStream}
+          spaceId={listStream.id}
+          spaceType={listStream.type}
+          currentStream={currentStream}
+        />
       </div>
     </AudioProvider>
   );

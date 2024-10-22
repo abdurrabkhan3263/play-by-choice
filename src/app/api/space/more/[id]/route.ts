@@ -1,4 +1,5 @@
 import prismaClient from "@/lib/db";
+import { CreateStreamType } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(
@@ -175,8 +176,47 @@ export async function PUT(
   }
 
   try {
-    const addStream = await prismaClient.stream.create({
-      data: stream,
+    const streamData = stream.flatMap((item) => {
+      if (item?.itemType === "album" || item?.itemType === "playlist") {
+        return (item.listSongs ?? []).map((song: CreateStreamType) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { itemType, ...rest } = song;
+          return {
+            ...rest,
+            spaceId: params.id,
+          };
+        });
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { itemType, ...rest } = item;
+      return [
+        {
+          ...rest,
+          spaceId: params.id,
+        },
+      ];
+    });
+    const addStream = await prismaClient.stream.createManyAndReturn({
+      data: streamData,
+      skipDuplicates: true,
+    });
+
+    if (addStream.length === 0) {
+      return NextResponse.json(
+        {
+          status: "Error",
+          message: "Something went wrong while adding stream",
+        },
+        { status: 500 }
+      );
+    }
+
+    const getAddedStream = await prismaClient.stream.findMany({
+      where: {
+        id: {
+          in: addStream.map((item) => item.id),
+        },
+      },
       include: {
         user: {
           select: {
@@ -189,11 +229,11 @@ export async function PUT(
       },
     });
 
-    if (!addStream) {
+    if (!getAddedStream) {
       return NextResponse.json(
         {
           status: "Error",
-          message: "Something went wrong while adding stream",
+          message: "Something went wrong while fetching added stream",
         },
         { status: 500 }
       );
@@ -203,7 +243,7 @@ export async function PUT(
       {
         status: "Success",
         message: "Stream is added successfully",
-        data: addStream,
+        data: getAddedStream,
       },
       {
         status: 201,

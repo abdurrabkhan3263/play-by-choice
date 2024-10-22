@@ -62,6 +62,7 @@ function SpaceCard({
         setIsDeleting(false);
         setIsOpen(false);
       }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       setIsDeleting(false);
     }

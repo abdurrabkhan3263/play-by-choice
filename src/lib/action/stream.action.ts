@@ -24,7 +24,7 @@ export async function updateStream({
   stream,
 }: {
   spaceId: string;
-  stream: CreateStreamType;
+  stream: CreateStreamType[];
 }) {
   try {
     const host = headers().get("host");
@@ -152,7 +152,7 @@ export async function getCurrentStream({ spaceId }: { spaceId: string }) {
     if (!res.ok) {
       throw new Error(resData?.message ?? "Failed to get current stream");
     }
-    return resData?.data;
+    return resData;
   } catch (error) {
     throw new Error(
       error instanceof Error
@@ -191,7 +191,6 @@ export async function addCurrentStream({
     revalidatePath(`/dashboard/space/${spaceId}`);
     return resData;
   } catch (error) {
-    console.error("Something went wrong while adding current stream", error);
     throw new Error(
       error instanceof Error ? error.message : "Failed to add current stream"
     );
@@ -236,8 +235,6 @@ export async function playAgainStream({
     revalidatePath(`/dashboard/space/${spaceId}`);
     return await res.json();
   } catch (error) {
-    console.error("Error while playing again stream:", error);
-
     // Instead of throwing an error, return an error response
     return NextResponse.json(
       {

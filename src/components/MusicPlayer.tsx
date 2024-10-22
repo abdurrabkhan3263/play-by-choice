@@ -13,13 +13,6 @@ import { addCurrentStream } from "@/lib/action/stream.action";
 import { Loader2, Pause, Play } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-declare global {
-  interface Window {
-    onSpotifyWebPlaybackSDKReady: () => void;
-    Spotify: any;
-  }
-}
-
 function MusicPlayer({
   currentStream,
   token,

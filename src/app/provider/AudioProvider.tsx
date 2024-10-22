@@ -1,10 +1,8 @@
 import MusicPlayer from "@/components/MusicPlayer";
 import PlayAgain from "@/components/PlayAgain";
-import { getCurrentStream } from "@/lib/action/stream.action";
 import { authOptions } from "../api/auth/[...nextauth]/options";
 import { getServerSession } from "next-auth";
-import { StreamType } from "@prisma/client";
-import YoutubePlayer from "@/components/YoutubePlayer";
+import { AudioProviderProps, CurrentStream } from "@/types";
 
 async function AudioProvider({
   children,
@@ -12,37 +10,28 @@ async function AudioProvider({
   spaceId,
   isAllStreamPlayed,
   type,
-}: {
-  children: React.ReactNode;
-  token: string;
-  spaceId: string;
-  isAllStreamPlayed: boolean;
-  type: StreamType;
-}) {
+  currentStream,
+}: AudioProviderProps) {
   const currentSession = await getServerSession(authOptions);
-  const currentStream = await getCurrentStream({ spaceId });
+  const currentStreamData = currentStream?.data as CurrentStream;
 
   return (
     <>
       {children}
-      {!isAllStreamPlayed && currentStream ? (
-        <>
-          {type === "Spotify" && (
-            <MusicPlayer
-              currentStream={currentStream}
-              token={token}
-              spaceId={spaceId}
-              role={
-                currentStream?.space?.createdBy.id === currentSession?.user?.id
-                  ? "OWNER"
-                  : "MEMBER"
-              }
-            />
-          )}
-          {type === "Youtube" && <YoutubePlayer />}
-        </>
-      ) : (
-        <PlayAgain spaceId={spaceId} playAgain={isAllStreamPlayed} />
+      {currentStream.data && type === "Spotify" && (
+        <MusicPlayer
+          currentStream={currentStreamData}
+          token={token}
+          spaceId={spaceId}
+          role={
+            currentStreamData?.space?.createdBy.id === currentSession?.user?.id
+              ? "OWNER"
+              : "MEMBER"
+          }
+        />
+      )}
+      {!currentStreamData && currentStream.isStreamAvailable && (
+        <PlayAgain playAgain={isAllStreamPlayed} spaceId={spaceId} />
       )}
     </>
   );
