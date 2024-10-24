@@ -31,7 +31,10 @@ function PlayAgain({
     }
   };
   return (
-    <div className="fixed bottom-0 xl:px-16 py-4 flex justify-center items-center right-1/2 translate-x-1/2 translate-y-0 h-fit w-full bg-gray-800">
+    <div
+      className="music_player"
+      style={{ display: "flex", justifyContent: "center" }}
+    >
       <Button onClick={handlePlayAgain} disabled={submitting}>
         Play {playAgain && "again"}
       </Button>

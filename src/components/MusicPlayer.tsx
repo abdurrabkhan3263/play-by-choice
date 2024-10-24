@@ -12,6 +12,7 @@ import Image from "next/image";
 import { addCurrentStream } from "@/lib/action/stream.action";
 import { Loader2, Pause, Play } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { CurrentStream } from "@/types";
 
 function MusicPlayer({
   currentStream,
@@ -19,7 +20,7 @@ function MusicPlayer({
   spaceId,
   role,
 }: {
-  currentStream: any;
+  currentStream: CurrentStream;
   token: string;
   spaceId: string;
   role: "OWNER" | "MEMBER";
@@ -86,26 +87,29 @@ function MusicPlayer({
         });
       });
 
+      player.addListener("not_ready", () => {
+        deviceId.current = "";
+      });
+
+      let done = false;
       player.addListener(
-        "not_ready",
-        ({ device_id }: { device_id: string }) => {
-          deviceId.current = "";
+        "player_state_changed",
+        async (state: Spotify.PlaybackState) => {
+          if (!state) {
+            return;
+          }
+
+          setIsPaused(state.paused);
+          const trackInPrevious = state.track_window.previous_tracks.find(
+            (x) => x.id === state.track_window.current_track.id
+          );
+          if (trackInPrevious && state.paused && !state.loading && !done) {
+            console.log("Playing next track");
+            await handleNextTrack();
+            done = true;
+          }
         }
       );
-
-      player.addListener("player_state_changed", async (state: any) => {
-        if (!state) {
-          return;
-        }
-
-        setIsPaused(state.paused);
-        const trackInPrevious = state.track_window.previous_tracks.find(
-          (x) => x.id === state.track_window.current_track.id
-        );
-        if (trackInPrevious && state.paused && !state.loading) {
-          await handleNextTrack();
-        }
-      });
 
       if (toggleBtn.current) {
         let isPlaying = false;
@@ -143,18 +147,7 @@ function MusicPlayer({
 
           streamId.current = data.stream.id;
           currentStreamId.current = data.id;
-
-          // const addNextTrackInQueue = await fetch(
-          //   `https://api.spotify.com/v1/me/player/queue?uri=${data.stream.url}&device_id=${deviceId.current}`,
-          //   {
-          //     method: "POST",
-          //     headers: {
-          //       Authorization: `Bearer ${token}`,
-          //     },
-          //   }
-          // );
-
-          await playTrack(data.stream.url);
+          await playTrack(data.stream.extractedId);
         } else {
           console.log("No more tracks to play");
         }
@@ -198,14 +191,14 @@ function MusicPlayer({
 
   if (isError) {
     return (
-      <div className="fixed bottom-0 xl:px-16 py-4 flex justify-between items-center right-1/2 translate-x-1/2 translate-y-0 h-fit w-full bg-gray-800">
+      <div className="xl:px-16 py-4 flex justify-between items-center right-1/2 translate-x-1/2 translate-y-0 h-fit w-full bg-gray-800">
         <p className="text-red-500 mx-auto">Error in playing music</p>
       </div>
     );
   }
 
   return (
-    <div className="fixed bottom-0 px-4 sm:flex-row md:px-8 xl:px-16 py-3 flex justify-between items-center right-1/2 translate-x-1/2 translate-y-0 h-fit w-full bg-gray-800">
+    <div className="music_player px-4 sm:flex-row md:px-8">
       {!isActive ? (
         <p className="text-white">
           <Loader2 size={24} className="animate-spin text-gray-400" />

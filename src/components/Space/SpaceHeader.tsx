@@ -50,6 +50,7 @@ function SpaceHeader({ streamList }: { streamList: SpaceStreamList }) {
             updatedSpace?.message ?? "Space name updated successfully",
         });
       }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast({
         title: "Error",
@@ -59,7 +60,7 @@ function SpaceHeader({ streamList }: { streamList: SpaceStreamList }) {
     } finally {
       setIsEditing(false);
     }
-  }, [spaceName, isEditing, streamList]);
+  }, [streamList, spaceName, spaceId, toast]);
 
   useEffect(() => {
     if (isEditing && input.current) {
@@ -68,7 +69,7 @@ function SpaceHeader({ streamList }: { streamList: SpaceStreamList }) {
     if (!isEditing && spaceName !== streamList.name) {
       changeSpaceName();
     }
-  }, [isEditing]);
+  }, [changeSpaceName, isEditing, spaceName, streamList.name]);
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
@@ -151,7 +152,12 @@ function SpaceHeader({ streamList }: { streamList: SpaceStreamList }) {
                   spaceId={spaceId}
                   place="in_stream"
                 >
-                  <DropdownMenuItem className="text-red-400 focus:text-red-300 focus:bg-red-900">
+                  <DropdownMenuItem
+                    className="text-red-400 focus:text-red-300 focus:bg-red-900"
+                    onSelect={(event) => {
+                      event.preventDefault();
+                    }}
+                  >
                     <Trash2 className="w-5 h-5 mr-2" />
                     Delete Space
                   </DropdownMenuItem>

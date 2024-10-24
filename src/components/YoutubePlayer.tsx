@@ -14,7 +14,9 @@ function YoutubePlayer({ currentStream }: { currentStream: CurrentStream }) {
     const tag = document.createElement("script");
     tag.src = "https://www.youtube.com/iframe_api";
     const firstScriptTag = document.getElementsByTagName("script")[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    if (firstScriptTag.parentNode) {
+      firstScriptTag?.parentNode.insertBefore(tag, firstScriptTag);
+    }
 
     window.onYouTubeIframeAPIReady = () => {
       initializePlayer();
@@ -32,19 +34,14 @@ function YoutubePlayer({ currentStream }: { currentStream: CurrentStream }) {
           controls: 0,
         },
         events: {
-          onReady: onPlayerReady,
+          // onReady: onPlayerReady,
           onStateChange: onPlayerStateChange,
         },
       });
     }
 
-    // Player event handlers
-    function onPlayerReady(event: any) {
-      // Function To get the currentStream
-    }
-
     let done = false;
-    async function onPlayerStateChange(event: any) {
+    async function onPlayerStateChange(event: YT.OnStateChangeEvent) {
       if (event.data == window.YT.PlayerState.ENDED && !done) {
         // Load a new video
         const newVideo: FetchCurrentStream = await addCurrentStream({
@@ -55,7 +52,9 @@ function YoutubePlayer({ currentStream }: { currentStream: CurrentStream }) {
         console.log("New Video ", newVideo);
         if (newVideo?.data) {
           videoId.current = newVideo.data?.stream?.extractedId;
-          playerRef.current.loadVideoById(videoId.current);
+          if (playerRef.current) {
+            playerRef.current.loadVideoById(videoId.current);
+          }
           currentStreamRef.current = newVideo?.data;
         } else {
           stopVideo();
@@ -65,17 +64,14 @@ function YoutubePlayer({ currentStream }: { currentStream: CurrentStream }) {
     }
 
     function stopVideo() {
-      playerRef.current.stopVideo();
+      if (playerRef.current) {
+        playerRef.current.stopVideo();
+      }
     }
-
-    // Cleanup function
-    return () => {
-      delete window.onYouTubeIframeAPIReady;
-    };
   }, []);
   return (
     <>
-      <div className="aspect-video mt-4 bg-gradient-to-br to-gray-800 from-gray-900 rounded-md overflow-hidden">
+      <div className="aspect-video mt-4 rounded-md overflow-hidden">
         <div id="player"></div>
       </div>
     </>

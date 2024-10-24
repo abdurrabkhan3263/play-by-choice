@@ -111,16 +111,16 @@ function AddStreamBtn({
           ID,
           data?.user?.accessToken as string
         );
-        if (!youtubeData) {
+        if (!youtubeData || youtubeData?.error) {
           toast({
-            title: "Error",
-            description: "Failed to add stream",
+            title: youtubeData?.error.status ?? "Error",
+            description:
+              youtubeData?.error.errors[0].message ?? "Failed to add stream",
             variant: "destructive",
           });
           return;
         }
         const dataSnippet = youtubeData?.items[0]?.snippet;
-
         streamData = {
           itemType: "track",
           title: dataSnippet?.title,

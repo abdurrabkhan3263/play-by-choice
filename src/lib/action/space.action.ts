@@ -70,6 +70,7 @@ export async function deleteSpaceApi({ id }: { id: string }) {
     const res = await fetch(`${protocol}://${host}/api/space/more/${id}`, {
       method: "DELETE",
     });
+    console.log("res", res);
     if (res.statusText !== "OK") {
       return {
         status: "Error",

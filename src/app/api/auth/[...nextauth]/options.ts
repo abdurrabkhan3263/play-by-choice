@@ -134,6 +134,8 @@ export const authOptions: NextAuthOptions = {
             email: profile?.email,
           },
         });
+        console.log("Profile", profile);
+        console.log("Account", account);
         if (
           isUserExits &&
           (isUserExits?.provider).toLowerCase() !==

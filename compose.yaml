@@ -1,9 +1,11 @@
+version: "3.8"
+
 services:
   db:
-    image: postgres:9.6
+    image: postgres:latest
     restart: always
     volumes:
-      - ./data:/var/lib/postgresql/data
+      - play_by_choice:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: play_by_choice
       POSTGRES_USER: myuser
@@ -11,9 +13,11 @@ services:
     ports:
       - "5432:5432"
 
-  # adminer is a web interface for managing databases
   adminer:
     image: adminer
     restart: always
     ports:
       - "8080:8080"
+
+volumes:
+  play_by_choice: {}

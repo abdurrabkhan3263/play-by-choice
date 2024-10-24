@@ -2,7 +2,7 @@
 
 import { useToast } from "@/hooks/use-toast";
 import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 function AuthError() {
@@ -12,9 +12,12 @@ function AuthError() {
   const { toast } = useToast();
   const { push } = useRouter();
 
-  function redirect(path: string) {
-    push(path);
-  }
+  const redirect = useCallback(
+    (path: string) => {
+      push(path);
+    },
+    [push]
+  );
 
   useEffect(() => {
     switch (error) {
@@ -61,7 +64,7 @@ function AuthError() {
       default:
         break;
     }
-  }, [error, provider, toast]);
+  }, [error, provider, push, redirect, toast]);
 
   return null;
 }

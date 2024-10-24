@@ -1,27 +1,10 @@
 import { StreamType } from "@prisma/client";
+import { SpotifyApi } from "@types/spotify-api";
 
 declare global {
   interface Window {
     onSpotifyWebPlaybackSDKReady: () => void;
-    Spotify: any;
-    YT: {
-      Player: new (
-        elementId: string,
-        options: {
-          height: string;
-          width: string;
-          videoId: string;
-          playerVars: { [key: string]: number };
-          events: {
-            onReady: (event: { target: { playVideo: () => void } }) => void;
-            onStateChange: (event: { data: number }) => void;
-          };
-        }
-      ) => void;
-      PlayerState: {
-        PLAYING: number;
-      };
-    };
+    Spotify: SpotifyApi;
     onYouTubeIframeAPIReady: () => void;
   }
 }
@@ -39,7 +22,7 @@ declare type CreateStreamType = {
   smallImg: string;
   bigImg: string;
   createdAt: Date;
-  itemType?: string;
+  itemType?: "album" | "track" | "playlist";
   type: StreamType;
   listSongs?: CreateStreamType[];
   artists?: string;

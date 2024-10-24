@@ -19,6 +19,22 @@ export async function DELETE(
   }
 
   try {
+    const deleteStream = await prismaClient.currentStream.deleteMany({
+      where: {
+        spaceId: id,
+      },
+    });
+
+    if (!deleteStream) {
+      return NextResponse.json(
+        {
+          status: "Error",
+          message: "Something went wrong while deleting stream",
+        },
+        { status: 500 }
+      );
+    }
+
     const res = await prismaClient.space.delete({
       where: {
         id,
@@ -176,7 +192,7 @@ export async function PUT(
   }
 
   try {
-    const streamData = stream.flatMap((item) => {
+    const streamData = stream.flatMap((item: CreateStreamType) => {
       if (item?.itemType === "album" || item?.itemType === "playlist") {
         return (item.listSongs ?? []).map((song: CreateStreamType) => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars

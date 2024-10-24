@@ -1,13 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
-import {
-  CreateStreamType,
-  CurrentStream,
-  InsideSpaceProps,
-  SpaceStreamList,
-  StreamTypeApi,
-} from "@/types";
+import { CreateStreamType, InsideSpaceProps, StreamTypeApi } from "@/types";
 import StreamCard from "../Stream/SpaceCard";
 import { Input } from "../ui/input";
 import AddStreamBtn from "../AddStreamBtn";
@@ -17,10 +11,10 @@ import { updateStream } from "@/lib/action/stream.action";
 import SpaceHeader from "./SpaceHeader";
 import YoutubePlayer from "../YoutubePlayer";
 import { ScrollArea } from "../ui/scroll-area";
-import { ChevronDown, ChevronUp, Music2, Play, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Music2, Trash2 } from "lucide-react";
 import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
-import { timeAgo } from "@/lib/utils";
+// import { timeAgo } from "@/lib/utils";
 import Image from "next/image";
 
 const InsideSpace: React.FC<InsideSpaceProps> = ({
@@ -96,11 +90,11 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
     if (addedStream.length > 0) {
       addStream();
     }
-  }, [addedStream, isListSong, toast]);
+  }, [addedStream, isListSong, spaceId, toast]);
 
   return (
     <>
-      <div className="col-span-1 bg-gradient-to-br flex flex-col overflow-hidden gap-4 from-gray-800 to-gray-900 md:col-span-2 lg:col-span-3 xl:col-span-4 rounded-xl p-4">
+      <div className="col-span-5 bg-gradient-to-br flex flex-col overflow-hidden gap-4 from-gray-800 to-gray-900 md:col-span-2 lg:col-span-3 xl:col-span-4 rounded-xl p-4">
         <div className="flex flex-row lg:flex-col flex-wrap lg:flex-nowrap gap-6 flex-1 overflow-y-auto custom_scroll">
           <SpaceHeader streamList={streamList} />
           {Array.isArray(listStream) &&
@@ -132,7 +126,7 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
           )}
         </div>
       </div>
-      <div className="col-span-1 h-fit flex flex-col justify-between md:h-full md:mb-12 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4">
+      <div className="col-span-5 md:col-span-1 h-fit flex flex-col justify-between md:h-full md:mb-12 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4">
         <div>
           <h1 className="text-2xl font-semibold hidden md:block">
             Add New Stream
@@ -155,7 +149,7 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
         </div>
         {isListSong.isList && addedStream[0]?.listSongs && (
           <div className="fixed flex justify-center items-center z-50 bg-[#3a3b3a98] backdrop-blur-sm filter h-screen w-screen right-1/2 translate-x-1/2 top-1/2 -translate-y-1/2">
-            <div className="h-fit w-full mx-4 md:w-1/2 lg:w-1/3">
+            <div className="h-fit w-full mx-4 md:w-1/2 lg:w-1/3 bg-gradient-to-r from-slate-800 to-slate-900 p-8 rounded-2xl">
               <Card
                 className="w-full mx-auto flex-shrink-0 overflow-hidden rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:shadow-xl"
                 style={{

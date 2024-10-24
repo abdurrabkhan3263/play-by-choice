@@ -23,7 +23,7 @@ function StreamCard({
   createdAt: Date;
   setStream: React.Dispatch<React.SetStateAction<CreateStreamType[]>>;
   id: string;
-  itemType: string;
+  itemType?: "album" | "track" | "playlist";
   listSongs?: CreateStreamType[];
 }) {
   const [isExpanded, setIsExpanded] = React.useState<boolean>(false);
@@ -35,7 +35,7 @@ function StreamCard({
     if (listSongs && itemType !== "track" && listSongs?.length === 0) {
       setStream((prev) => prev.filter((s) => s.extractedId !== id));
     }
-  }, [listSongs]);
+  }, [id, itemType, listSongs, setStream]);
 
   return (
     <Card

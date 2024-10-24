@@ -19,6 +19,8 @@ export default function SpaceCard({
 }: SpaceType) {
   const router = useRouter();
 
+  const imageHostName = new URL(Stream[0].bigImg).hostname;
+
   return (
     <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl">
       <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
@@ -26,7 +28,11 @@ export default function SpaceCard({
         <div className="p-4 xl:p-6 lg:p-8">
           <div className="flex flex-col lg:flex-row items-start gap-6">
             <div
-              className="relative aspect-square w-full lg:w-36 overflow-hidden rounded-lg bg-gray-700 shadow-inner"
+              className={`relative ${
+                imageHostName === "i.ytimg.com"
+                  ? "aspect-video lg:aspect-square"
+                  : "aspect-square"
+              } w-full lg:w-36 overflow-hidden rounded-lg bg-gray-700 shadow-inner`}
               onClick={() => router.push(`/dashboard/stream/${id}`)}
             >
               {Stream.length > 0 && Stream[0].bigImg ? (

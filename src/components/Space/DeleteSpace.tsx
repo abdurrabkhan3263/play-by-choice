@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useCallback, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -33,18 +33,18 @@ function DeleteSpace({
   children,
   place,
 }: DeleteSpaceProps): React.ReactElement {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [isDeleting, setIsDeleting] = React.useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
   const { data, status } = useSession();
 
-  const deleteSpace = async () => {
+  const handleDelete = useCallback(async () => {
+    if (isDeleting) return;
     setIsDeleting(true);
     try {
       const res = await deleteSpaceApi({ id: spaceId });
       if (res?.status === "Success") {
-        setIsOpen(false);
         toast({
           title: "Success",
           description: "Space deleted successfully",
@@ -58,7 +58,7 @@ function DeleteSpace({
         });
       }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
+    } catch (e) {
       toast({
         title: "Error",
         description: "Something went wrong",
@@ -66,12 +66,26 @@ function DeleteSpace({
       });
     } finally {
       setIsDeleting(false);
+      setIsOpen(false);
     }
-  };
+  }, [spaceId, router, toast, isDeleting]);
 
-  return status === "authenticated" && createdBy.email === data?.user.email ? (
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      if (!isDeleting) {
+        setIsOpen(open);
+      }
+    },
+    [isDeleting]
+  );
+
+  if (status !== "authenticated" || createdBy.email !== data?.user.email) {
+    return <></>;
+  }
+
+  return (
     <div className={cn({ "absolute right-2 top-2": place === "in_space" })}>
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogTrigger asChild>{children}</DialogTrigger>
         <DialogContent className="sm:max-w-[425px] bg-gray-800 text-gray-100 border-gray-700">
           <DialogHeader>
@@ -91,10 +105,11 @@ function DeleteSpace({
             <Button
               type="button"
               variant="destructive"
-              onClick={deleteSpace}
+              onClick={handleDelete}
+              disabled={isDeleting}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
-              Delete{" "}
+              {isDeleting ? "Deleting..." : "Delete"}
               {isDeleting && (
                 <Loader2 height={18} width={18} className="animate-spin ml-2" />
               )}
@@ -111,8 +126,6 @@ function DeleteSpace({
         </DialogContent>
       </Dialog>
     </div>
-  ) : (
-    <></>
   );
 }
 
