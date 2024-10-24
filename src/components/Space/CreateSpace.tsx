@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,7 +39,8 @@ function CreateSpace() {
   const onSubmit = async (data: z.infer<typeof CreateStreamSchema>) => {
     setIsSubmitting(true);
     try {
-      const addStream = await createSpace({ data, stream });
+      const baseUrl = window.location.origin;
+      const addStream = await createSpace({ data, stream, baseUrl });
       if (addStream) {
         toast({
           title: "Success",

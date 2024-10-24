@@ -87,7 +87,7 @@ declare type CurrentStream = {
     smallImg: string;
     popularity: number;
     url: string;
-    artist: string;
+    artists: string;
     extractedId: string;
   };
   space: {

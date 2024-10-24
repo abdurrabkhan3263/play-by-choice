@@ -4,8 +4,8 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { CreateStreamType } from "@/types";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 
 export async function getCurrentUser() {
@@ -22,25 +22,22 @@ export async function getCurrentUser() {
 export async function updateStream({
   spaceId,
   stream,
+  baseUrl,
 }: {
   spaceId: string;
   stream: CreateStreamType[];
+  baseUrl: string;
 }) {
   try {
-    const host = headers().get("host");
-    const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
-    const newStream = await fetch(
-      `${protocol}://${host}/api/space/more/${spaceId}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          stream: stream,
-        }),
-      }
-    );
+    const newStream = await fetch(`${baseUrl}/api/space/more/${spaceId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        stream: stream,
+      }),
+    });
     const res = await newStream.json();
 
     if (!newStream.ok) {
@@ -58,18 +55,18 @@ export async function updateStream({
 export async function deleteStream({
   streamId,
   spaceId,
+  baseUrl,
 }: {
   streamId: string;
   spaceId: string;
+  baseUrl: string;
 }) {
   if (!streamId) {
     throw new Error("No stream id provided");
   }
-  const host = headers().get("host");
-  const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
 
   try {
-    const res = await fetch(`${protocol}://${host}/api/stream/${streamId}`, {
+    const res = await fetch(`${baseUrl}/api/stream/${streamId}`, {
       method: "DELETE",
     });
     if (!res.ok) {
@@ -86,15 +83,19 @@ export async function deleteStream({
   }
 }
 
-export async function upVoteStream({ streamId }: { streamId: string }) {
+export async function upVoteStream({
+  streamId,
+  baseUrl,
+}: {
+  streamId: string;
+  baseUrl: string;
+}) {
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     redirect("/sign-in");
   }
-  const host = headers().get("host");
-  const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
   try {
-    const res = await fetch(`${protocol}://${host}/api/upvote/${streamId}`, {
+    const res = await fetch(`${baseUrl}/api/upvote/${streamId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -112,15 +113,19 @@ export async function upVoteStream({ streamId }: { streamId: string }) {
   }
 }
 
-export async function deleteUpVoteStream({ streamId }: { streamId: string }) {
+export async function deleteUpVoteStream({
+  streamId,
+  baseUrl,
+}: {
+  streamId: string;
+  baseUrl: string;
+}) {
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     redirect("/sign-in");
   }
-  const host = headers().get("host");
-  const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
   try {
-    const res = await fetch(`${protocol}://${host}/api/upvote/${streamId}`, {
+    const res = await fetch(`${baseUrl}/api/upvote/${streamId}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -141,9 +146,9 @@ export async function deleteUpVoteStream({ streamId }: { streamId: string }) {
 export async function getCurrentStream({ spaceId }: { spaceId: string }) {
   try {
     const host = headers().get("host");
-    const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
+    const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
     const res = await fetch(
-      `${protocol}://${host}/api/current-stream/${spaceId}`,
+      `${host}://${protocol}/api/current-stream/${spaceId}`,
       {
         method: "GET",
       }
@@ -166,24 +171,21 @@ export async function addCurrentStream({
   spaceId,
   streamId,
   currentStreamId,
+  baseUrl,
 }: {
   spaceId: string;
   streamId: string;
   currentStreamId: string;
+  baseUrl: string;
 }) {
   try {
-    const host = headers().get("host");
-    const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
-    const res = await fetch(
-      `${protocol}://${host}/api/current-stream/${spaceId}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ streamId, currentStreamId }),
-      }
-    );
+    const res = await fetch(`${baseUrl}/api/current-stream/${spaceId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ streamId, currentStreamId }),
+    });
     const resData = await res.json();
     if (!res.ok) {
       throw new Error(resData?.message ?? "Failed to add current stream");
@@ -200,29 +202,20 @@ export async function addCurrentStream({
 export async function playAgainStream({
   spaceId,
   allPlayed,
+  baseUrl,
 }: {
   spaceId: string;
   allPlayed: boolean;
+  baseUrl: string;
 }) {
   try {
-    const headersList = headers();
-    const host = headersList.get("host");
-    const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
-
-    if (!host) {
-      throw new Error("Host header is missing");
-    }
-
-    const res = await fetch(
-      `${protocol}://${host}/api/current-stream/${spaceId}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ allPlayed }),
-      }
-    );
+    const res = await fetch(`${baseUrl}/api/current-stream/${spaceId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ allPlayed }),
+    });
 
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));

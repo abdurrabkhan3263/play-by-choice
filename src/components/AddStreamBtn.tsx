@@ -200,7 +200,7 @@ function AddStreamBtn({
             url: streamUrl,
             popularity: spotifyData?.popularity,
             userId: data?.user?.id,
-            artist: spotifyData?.artists
+            artists: spotifyData?.artists
               .map((artist) => artist.name)
               .join(", "),
           };
@@ -239,9 +239,9 @@ function AddStreamBtn({
             });
             return;
           }
-
           const listSongs = (await Promise.all(
-            albumData?.tracks?.items.map(async (item) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            albumData?.tracks?.items.map(async (item: any) => {
               const ID = itemType === "album" ? item?.id : item.track.id;
               const trackData = await getTrack(ID);
               return {
@@ -255,7 +255,7 @@ function AddStreamBtn({
                 url: streamUrl,
                 popularity: trackData?.popularity,
                 userId: data?.user?.id,
-                artist: trackData?.artists
+                artists: trackData?.artists
                   .map((artist) => artist.name)
                   .join(", "),
               } as CreateStreamType;

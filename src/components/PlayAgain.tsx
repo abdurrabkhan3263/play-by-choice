@@ -18,7 +18,13 @@ function PlayAgain({
   const handlePlayAgain = async () => {
     setSubmitting(true);
     try {
-      await playAgainStream({ spaceId: spaceId, allPlayed: playAgain });
+      const baseUrl =
+        process.env.NEXT_PUBLIC_API_BASE_URL || window.location.origin;
+      await playAgainStream({
+        spaceId: spaceId,
+        allPlayed: playAgain,
+        baseUrl,
+      });
     } catch (error) {
       toast({
         title: "Error",

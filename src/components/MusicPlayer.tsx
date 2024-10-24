@@ -31,7 +31,7 @@ function MusicPlayer({
     title: "",
     coverImg: "",
     popularity: 0,
-    artist: "",
+    artists: "",
   });
   const [isActive, setActive] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -71,7 +71,7 @@ function MusicPlayer({
               title: currentStream.stream.title,
               coverImg: currentStream.stream.smallImg,
               popularity: currentStream.stream.popularity,
-              artist: currentStream.stream.artist,
+              artists: currentStream.stream.artists,
             });
           }
           setActive(true);
@@ -129,10 +129,13 @@ function MusicPlayer({
       }
 
       const handleNextTrack = async () => {
+        const baseUrl =
+          process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
         const { data } = await addCurrentStream({
           spaceId,
           streamId: streamId.current as string,
           currentStreamId: currentStreamId.current,
+          baseUrl,
         });
 
         if (data && data.stream) {
@@ -141,7 +144,7 @@ function MusicPlayer({
             title: data.stream.title,
             coverImg: data.stream.smallImg,
             popularity: data.stream.popularity,
-            artist: data.stream.artist,
+            artists: data.stream.artists,
           });
 
           streamId.current = data.stream.id;
@@ -232,7 +235,7 @@ function MusicPlayer({
               <p className="text-lg font-semibold">{track.title}</p>
               <p className="text-sm">{track.popularity}</p>
             </div>
-            <p className="text-sm font-thin">{track?.artist}</p>
+            <p className="text-sm font-thin">{track?.artists}</p>
           </div>
         </div>
       )}

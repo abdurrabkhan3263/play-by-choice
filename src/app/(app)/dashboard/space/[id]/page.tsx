@@ -43,7 +43,12 @@ async function page({
       </div>
     );
   }
-  const currentStream = await getCurrentStream({ spaceId: params.id });
+  let currentStream = [];
+  try {
+    currentStream = await getCurrentStream({ spaceId: params.id });
+  } catch (error) {
+    console.log("Current Stream", error);
+  }
 
   return (
     <AudioProvider

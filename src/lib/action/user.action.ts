@@ -1,10 +1,12 @@
 "use server";
-import { headers } from "next/headers";
-
-export async function deleteAccount({ email }: { email: string }) {
-  const host = headers().get("host");
-  const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
-  const response = await fetch(`${protocol}://${host}/api/user/${email}`, {
+export async function deleteAccount({
+  email,
+  baseUrl,
+}: {
+  email: string;
+  baseUrl: string;
+}) {
+  const response = await fetch(`${baseUrl}/api/user/${email}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",

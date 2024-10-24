@@ -41,7 +41,13 @@ function SpaceHeader({ streamList }: { streamList: SpaceStreamList }) {
   const changeSpaceName = useCallback(async () => {
     try {
       if (streamList.name === spaceName) return;
-      const updatedSpace = await updateSpaceName({ spaceId, spaceName });
+      const baseUrl =
+        process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
+      const updatedSpace = await updateSpaceName({
+        spaceId,
+        spaceName,
+        baseUrl,
+      });
       if (updatedSpace?.status === "Success") {
         streamList.name = spaceName;
         toast({

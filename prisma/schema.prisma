@@ -30,7 +30,7 @@ model Stream {
   title         String         @default("")
   smallImg      String         @default("")
   bigImg        String         @default("")
-  artist        String?        @default("")
+  artists       String?        @default("")
   active        Boolean        @default(false)
   played        Boolean        @default(false)
   playedTs      DateTime?

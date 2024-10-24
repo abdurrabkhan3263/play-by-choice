@@ -4,21 +4,25 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { CreateStreamType } from "@/types";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { capitalize } from "lodash";
+import { headers } from "next/headers";
 
 export async function createSpace({
   data,
   stream,
+  baseUrl,
 }: {
   data: { spaceName: string };
   stream: CreateStreamType[];
+  baseUrl: string;
 }) {
   try {
     const currentUser = await getServerSession(authOptions);
-    const host = headers().get("host");
-    const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
-    const addStream = await fetch(`${protocol}://${host}/api/space`, {
+
+    if (!currentUser?.user?.email) {
+      throw new Error("User not authenticated");
+    }
+    const addStream = await fetch(`${baseUrl}/api/space`, {
       method: "POST",
       body: JSON.stringify({
         spaceName: data.spaceName,
@@ -40,6 +44,7 @@ export async function createSpace({
     revalidatePath("/dashboard");
     return res;
   } catch (error) {
+    console.error("Error while creating space", error);
     throw new Error(
       error instanceof Error
         ? error.message || "Something went wrong while creating space"
@@ -51,10 +56,14 @@ export async function createSpace({
 export async function getAllSpace() {
   try {
     const currentUser = await getServerSession(authOptions);
+    if (!currentUser?.user?.email) {
+      throw new Error("User not authenticated");
+    }
+
     const host = headers().get("host");
-    const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
+    const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
     const res = await fetch(
-      `${protocol}://${host}/api/get-all-spaces/${encodeURIComponent(
+      `${host}://${protocol}/api/get-all-spaces/${encodeURIComponent(
         currentUser?.user?.email as string
       )}`,
       {
@@ -71,11 +80,15 @@ export async function getAllSpace() {
   }
 }
 
-export async function deleteSpaceApi({ id }: { id: string }) {
+export async function deleteSpaceApi({
+  id,
+  baseUrl,
+}: {
+  id: string;
+  baseUrl: string;
+}) {
   try {
-    const host = headers().get("host");
-    const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
-    const res = await fetch(`${protocol}://${host}/api/space/more/${id}`, {
+    const res = await fetch(`${baseUrl}/api/space/more/${id}`, {
       method: "DELETE",
     });
     if (res.statusText !== "OK") {
@@ -101,8 +114,8 @@ export async function deleteSpaceApi({ id }: { id: string }) {
 export async function getSpaceById({ id }: { id: string }) {
   try {
     const host = headers().get("host");
-    const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
-    const res = await fetch(`${protocol}://${host}/api/space/more/${id}`, {
+    const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
+    const res = await fetch(`${host}://${protocol}/api/space/more/${id}`, {
       method: "GET",
     });
     if (res.statusText !== "OK") {
@@ -132,14 +145,14 @@ export async function getSpaceById({ id }: { id: string }) {
 export async function updateSpaceName({
   spaceId,
   spaceName,
+  baseUrl,
 }: {
   spaceId: string;
   spaceName: string;
+  baseUrl: string;
 }) {
   try {
-    const host = headers().get("host");
-    const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
-    const res = await fetch(`${protocol}://${host}/api/space/more/${spaceId}`, {
+    const res = await fetch(`${baseUrl}/api/space/more/${spaceId}`, {
       method: "PATCH",
       body: JSON.stringify({
         spaceName,

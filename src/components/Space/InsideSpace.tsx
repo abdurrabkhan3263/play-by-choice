@@ -59,9 +59,12 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
 
       if (isListSong.final) {
         try {
+          const baseUrl =
+            process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
           const newStream = await updateStream({
             spaceId,
             stream: addedStream as CreateStreamType[],
+            baseUrl,
           });
           if (newStream) {
             setListStream((prev) => [...prev, ...newStream.data]);
