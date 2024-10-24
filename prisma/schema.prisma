@@ -35,7 +35,7 @@ model Stream {
   played        Boolean        @default(false)
   playedTs      DateTime?
   createdAt     DateTime       @default(now())
-  user          User           @relation(fields: [userId], references: [id])
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String
   Upvote        Upvote[]
   space         Space          @relation(fields: [spaceId], references: [id], onDelete: Cascade)
@@ -47,9 +47,9 @@ model Stream {
 
 model CurrentStream {
   id       String @id @default(uuid())
-  stream   Stream @relation(fields: [streamId], references: [id])
+  stream   Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
   streamId String @unique
-  space    Space  @relation(fields: [spaceId], references: [id])
+  space    Space  @relation(fields: [spaceId], references: [id], onDelete: Cascade)
   spaceId  String
 
   @@unique([spaceId, streamId])
@@ -57,9 +57,9 @@ model CurrentStream {
 
 model Upvote {
   id       String  @id @default(uuid())
-  user     User?   @relation(fields: [userId], references: [id])
+  user     User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId   String?
-  stream   Stream? @relation(fields: [streamId], references: [id])
+  stream   Stream? @relation(fields: [streamId], references: [id], onDelete: Cascade)
   streamId String?
 
   @@unique([userId, streamId])
@@ -69,7 +69,7 @@ model Space {
   id            String          @id @default(uuid())
   CurrentStream CurrentStream[]
   Stream        Stream[]
-  createdBy     User            @relation(fields: [userId], references: [id])
+  createdBy     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String
   name          String?         @default("Untitled")
   createdAt     DateTime        @default(now())

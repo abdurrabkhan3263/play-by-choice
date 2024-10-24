@@ -16,8 +16,6 @@ async function ListSpace() {
 
   const data = await res.json();
 
-  console.log("List Space", data);
-
   return (
     <div className="custom_scroll space_container">
       {Array.isArray(data.data) &&

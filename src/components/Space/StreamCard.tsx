@@ -84,10 +84,10 @@ function StreamCard({
             <Button
               variant="ghost"
               size="icon"
+              type="button"
               onClick={() => setIsExpanded((prev) => !prev)}
               className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors duration-200"
               aria-label={isExpanded ? "Collapse playlist" : "Expand playlist"}
-              disabled={itemType === "track"}
             >
               {isExpanded ? (
                 <ChevronUp size={20} className="text-[#A9C4D7]" />

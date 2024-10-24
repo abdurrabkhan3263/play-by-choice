@@ -104,7 +104,6 @@ function MusicPlayer({
             (x) => x.id === state.track_window.current_track.id
           );
           if (trackInPrevious && state.paused && !state.loading && !done) {
-            console.log("Playing next track");
             await handleNextTrack();
             done = true;
           }
@@ -148,8 +147,6 @@ function MusicPlayer({
           streamId.current = data.stream.id;
           currentStreamId.current = data.id;
           await playTrack(data.stream.extractedId);
-        } else {
-          console.log("No more tracks to play");
         }
       };
 
@@ -177,7 +174,12 @@ function MusicPlayer({
             });
           }
         } catch (error) {
-          console.log("Error is:- ", error);
+          toast({
+            title: "Error",
+            description:
+              error instanceof Error ? error.message : "Failed to play track",
+            variant: "destructive",
+          });
         }
       };
 

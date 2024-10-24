@@ -134,8 +134,12 @@ export const authOptions: NextAuthOptions = {
             email: profile?.email,
           },
         });
-        console.log("Profile", profile);
-        console.log("Account", account);
+        if (
+          account?.provider === "spotify" &&
+          (profile as any)?.product !== "premium"
+        ) {
+          return `/sign-in?error=premium-account-required`;
+        }
         if (
           isUserExits &&
           (isUserExits?.provider).toLowerCase() !==

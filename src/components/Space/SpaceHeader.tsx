@@ -33,7 +33,7 @@ function SpaceHeader({ streamList }: { streamList: SpaceStreamList }) {
   const input = useRef<HTMLInputElement>(null);
 
   const handleShare = () => {
-    const link = `${window.location.origin}/dashboard/stream/${spaceId}`;
+    const link = `${window.location.origin}/dashboard/space/${spaceId}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(link)}`;
     window.open(whatsappUrl, "_blank");
   };
@@ -89,7 +89,7 @@ function SpaceHeader({ streamList }: { streamList: SpaceStreamList }) {
   }, [changeSpaceName, isEditing]);
 
   return (
-    <Card className="w-full bg-[#171F2D] border-none shadow-none">
+    <Card className="w-full bg-[#171F2D] h-fit border-none shadow-none">
       <CardContent className="p-6">
         <div className="flex flex-col sm:flex-row justify-between items-end gap-4">
           <div className="flex items-center gap-2" ref={editingContainer}>

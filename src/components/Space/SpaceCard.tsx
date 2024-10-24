@@ -18,8 +18,12 @@ export default function SpaceCard({
   createdBy,
 }: SpaceType) {
   const router = useRouter();
+  let imageHostName = "";
 
-  const imageHostName = new URL(Stream[0].bigImg).hostname;
+  if (Stream.length > 0 && Stream[0].bigImg) {
+    const url = new URL(Stream[0].bigImg);
+    imageHostName = url.hostname;
+  }
 
   return (
     <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl">
@@ -33,7 +37,7 @@ export default function SpaceCard({
                   ? "aspect-video lg:aspect-square"
                   : "aspect-square"
               } w-full lg:w-36 overflow-hidden rounded-lg bg-gray-700 shadow-inner`}
-              onClick={() => router.push(`/dashboard/stream/${id}`)}
+              onClick={() => router.push(`/dashboard/space/${id}`)}
             >
               {Stream.length > 0 && Stream[0].bigImg ? (
                 <Image
@@ -50,7 +54,7 @@ export default function SpaceCard({
               )}
             </div>
             <div className="flex-1 space-y-4">
-              <Link href={`/dashboard/stream/${id}`}>
+              <Link href={`/dashboard/space/${id}`}>
                 <h2 className="text-2xl font-bold leading-tight text-gray-100 group-hover:text-gray-300 transition-colors duration-200">
                   {name}
                 </h2>

@@ -40,7 +40,11 @@ export async function createSpace({
     revalidatePath("/dashboard");
     return res;
   } catch (error) {
-    console.log("Error is:- ", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message || "Something went wrong while creating space"
+        : String(error) || "Something went wrong while creating space"
+    );
   }
 }
 
@@ -59,7 +63,11 @@ export async function getAllSpace() {
     );
     return res;
   } catch (error) {
-    console.log("Error is:- ", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message || "Something went wrong while getting the space"
+        : String(error) || "Something went wrong while getting the space"
+    );
   }
 }
 
@@ -70,7 +78,6 @@ export async function deleteSpaceApi({ id }: { id: string }) {
     const res = await fetch(`${protocol}://${host}/api/space/more/${id}`, {
       method: "DELETE",
     });
-    console.log("res", res);
     if (res.statusText !== "OK") {
       return {
         status: "Error",
@@ -83,7 +90,11 @@ export async function deleteSpaceApi({ id }: { id: string }) {
       message: "Space is deleted successfully",
     };
   } catch (error) {
-    console.log("Error is:- ", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message || "Something went wrong while deleting space"
+        : String(error) || "Something went wrong while deleting space"
+    );
   }
 }
 
@@ -110,7 +121,11 @@ export async function getSpaceById({ id }: { id: string }) {
     }
     return data.data;
   } catch (error) {
-    console.log("Error is:- ", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message || "Something went wrong while getting the space"
+        : String(error) || "Something went wrong while getting the space"
+    );
   }
 }
 
@@ -139,12 +154,16 @@ export async function updateSpaceName({
         message: "Something went wrong while updating space name",
       };
     }
-    revalidatePath(`/dashboard/stream/${spaceId}`);
+    revalidatePath(`/dashboard/space/${spaceId}`);
     return {
       status: "Success",
       message: "Space name updated successfully",
     };
   } catch (error) {
-    console.log("Error is:- ", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message || "Something went wrong while updating space name"
+        : String(error) || "Something went wrong while updating space name"
+    );
   }
 }

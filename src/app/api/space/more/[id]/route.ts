@@ -19,22 +19,6 @@ export async function DELETE(
   }
 
   try {
-    const deleteStream = await prismaClient.currentStream.deleteMany({
-      where: {
-        spaceId: id,
-      },
-    });
-
-    if (!deleteStream) {
-      return NextResponse.json(
-        {
-          status: "Error",
-          message: "Something went wrong while deleting stream",
-        },
-        { status: 500 }
-      );
-    }
-
     const res = await prismaClient.space.delete({
       where: {
         id,

@@ -11,7 +11,7 @@ function CreateSpaceButton() {
     <Button
       variant={"addBtn"}
       className="cursor-pointer"
-      onClick={() => router.push("/dashboard/create-stream")}
+      onClick={() => router.push("/dashboard/create-space")}
       type="button"
     >
       <p className="font-medium">Create New Stream</p>

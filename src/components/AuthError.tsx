@@ -60,6 +60,13 @@ function AuthError() {
           variant: "destructive",
         });
         redirect("/sign-in");
+      case "premium-account-required":
+        toast({
+          title: "Warning",
+          description: `Please upgrade to premium account to continue.`,
+          variant: "destructive",
+        });
+        redirect("/sign-in");
         break;
       default:
         break;

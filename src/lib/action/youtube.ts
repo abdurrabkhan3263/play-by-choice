@@ -6,7 +6,10 @@ export async function getVideoInfo(videoId: string, access_token: string) {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Error fetching video info:", error);
-    throw error;
+    throw new Error(
+      error instanceof Error
+        ? error.message || "Something went wrong while getting the video"
+        : String(error) || "Something went wrong while getting the video"
+    );
   }
 }

@@ -43,13 +43,11 @@ function YoutubePlayer({ currentStream }: { currentStream: CurrentStream }) {
     let done = false;
     async function onPlayerStateChange(event: YT.OnStateChangeEvent) {
       if (event.data == window.YT.PlayerState.ENDED && !done) {
-        // Load a new video
         const newVideo: FetchCurrentStream = await addCurrentStream({
           currentStreamId: currentStreamRef.current?.id,
           streamId: currentStreamRef.current.stream?.id,
           spaceId: currentStreamRef.current?.spaceId,
         });
-        console.log("New Video ", newVideo);
         if (newVideo?.data) {
           videoId.current = newVideo.data?.stream?.extractedId;
           if (playerRef.current) {

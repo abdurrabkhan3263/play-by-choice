@@ -4,8 +4,24 @@ import InsideSpace from "@/components/Space/InsideSpace";
 import { getSpaceById } from "@/lib/action/space.action";
 import { getCurrentStream } from "@/lib/action/stream.action";
 import { StreamTypeApi } from "@/types";
+import { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import React from "react";
+
+type Props = {
+  params: Promise<{ id: string }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const listStream = await getSpaceById({ id });
+  return {
+    title: `Space: ${listStream.name}`,
+    description: `
+    A detailed view of the space named ${listStream.name}, including all streams and their statuses. This page allows users to listen to the current stream and provides an overview of the space's content.
+    `,
+  };
+}
 
 async function page({
   params,

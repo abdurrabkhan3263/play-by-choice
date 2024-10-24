@@ -57,8 +57,11 @@ export async function getTrack(trackId: string) {
     const data = await spotifyApi.getTrack(trackId);
     return data.body;
   } catch (error) {
-    console.error("Error fetching track:", error);
-    throw error;
+    throw new Error(
+      error instanceof Error
+        ? error.message || "Something went wrong while getting the track"
+        : String(error) || "Something went wrong while getting the track"
+    );
   }
 }
 
@@ -68,8 +71,11 @@ export async function getAlbum(albumId: string) {
     const data = await spotifyApi.getAlbum(albumId);
     return data.body;
   } catch (error) {
-    console.error("Error fetching album:", error);
-    throw error;
+    throw new Error(
+      error instanceof Error
+        ? error.message || "Something went wrong while getting the album"
+        : String(error) || "Something went wrong while getting the album"
+    );
   }
 }
 
@@ -79,8 +85,11 @@ export async function getPlaylist(playlistId: string) {
     const data = await spotifyApi.getPlaylist(playlistId);
     return data.body;
   } catch (error) {
-    console.error("Error fetching album:", error);
-    throw error;
+    throw new Error(
+      error instanceof Error
+        ? error.message || "Something went wrong while getting the playlist"
+        : String(error) || "Something went wrong while getting the playlist"
+    );
   }
 }
 
@@ -90,8 +99,11 @@ export async function playNextTrack() {
     const data = await spotifyApi.skipToNext();
     return data.body;
   } catch (error) {
-    console.error("Error playing next track:", error);
-    throw error;
+    throw new Error(
+      error instanceof Error
+        ? error.message || "Something went wrong while playing the next track"
+        : String(error) || "Something went wrong while playing the next track"
+    );
   }
 }
 
@@ -110,7 +122,11 @@ export async function playNewTrack({
     });
     return data.body;
   } catch (error) {
-    console.error("Error playing track:", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message || "Something went wrong while playing the new track"
+        : String(error) || "Something went wrong while playing the new track"
+    );
     throw error;
   }
 }
@@ -145,8 +161,8 @@ export async function refreshAccessToken(token: JWT) {
       accessTokenExpires: Date.now() + refreshedTokens.expires_in * 1000,
       refreshToken: refreshedTokens.refresh_token ?? token.refreshToken,
     };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
-    console.error("Error refreshing access token:", error);
     return { ...token, error: "RefreshAccessTokenError" };
   }
 }

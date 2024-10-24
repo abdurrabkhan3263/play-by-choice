@@ -1,6 +1,13 @@
+import DashboardSpaceCardSkeleton from "@/components/Skeleton/DashboardSpaceCard";
 import CreateSpaceButton from "@/components/Space/CreateSpaceButton";
 import ListStreams from "@/components/Space/ListSpace";
-import React from "react";
+import { Metadata } from "next";
+import React, { Suspense } from "react";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "Dashboard",
+};
 
 async function Dashboard() {
   return (
@@ -15,7 +22,9 @@ async function Dashboard() {
             <CreateSpaceButton />
           </div>
         </div>
-        <ListStreams />
+        <Suspense fallback={<DashboardSpaceCardSkeleton />}>
+          <ListStreams />
+        </Suspense>
       </div>
     </div>
   );

@@ -75,7 +75,7 @@ export async function deleteStream({
     if (!res.ok) {
       throw new Error("Failed to delete stream");
     }
-    revalidatePath(`/dashboard/stream/${spaceId}`);
+    revalidatePath(`/dashboard/space/${spaceId}`);
     return await res.json();
   } catch (error) {
     throw new Error(

@@ -14,8 +14,8 @@ import { ScrollArea } from "../ui/scroll-area";
 import { ChevronDown, ChevronUp, Music2, Trash2 } from "lucide-react";
 import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
-// import { timeAgo } from "@/lib/utils";
 import Image from "next/image";
+import Loader from "../Loader/Loader";
 
 const InsideSpace: React.FC<InsideSpaceProps> = ({
   streamList,
@@ -95,35 +95,37 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
   return (
     <>
       <div className="col-span-5 bg-gradient-to-br flex flex-col overflow-hidden gap-4 from-gray-800 to-gray-900 md:col-span-2 lg:col-span-3 xl:col-span-4 rounded-xl p-4">
-        <div className="flex flex-row lg:flex-col flex-wrap lg:flex-nowrap gap-6 flex-1 overflow-y-auto custom_scroll">
+        <div className="flex flex-col gap-6 flex-1 overflow-y-auto custom_scroll">
           <SpaceHeader streamList={streamList} />
-          {Array.isArray(listStream) &&
-          status === "authenticated" &&
-          listStream.length > 0 ? (
-            listStream.map((stream: StreamTypeApi) => {
-              const role =
-                streamList.createdBy.email === data?.user.email
-                  ? "Owner"
-                  : stream.user.email === data?.user.email
-                  ? "Creator"
-                  : "Member";
+          <div className="flex flex-col gap-6 flex-1 lg:overflow-y-auto custom_scroll">
+            {Array.isArray(listStream) &&
+            status === "authenticated" &&
+            listStream.length > 0 ? (
+              listStream.map((stream: StreamTypeApi) => {
+                const role =
+                  streamList.createdBy.email === data?.user.email
+                    ? "Owner"
+                    : stream.user.email === data?.user.email
+                    ? "Creator"
+                    : "Member";
 
-              return (
-                <StreamCard
-                  key={stream.id}
-                  stream={stream}
-                  currentStream={streamList.CurrentStream[0]}
-                  role={role}
-                  setStream={setListStream}
-                  userId={data?.user.id}
-                />
-              );
-            })
-          ) : (
-            <p>
-              {status === "loading" ? "Loading...." : "No Stream Available"}
-            </p>
-          )}
+                return (
+                  <StreamCard
+                    key={stream.id}
+                    stream={stream}
+                    currentStream={streamList.CurrentStream[0]}
+                    role={role}
+                    setStream={setListStream}
+                    userId={data?.user.id}
+                  />
+                );
+              })
+            ) : (
+              <div className="flex justify-center items-center h-full w-full">
+                {status === "loading" ? <Loader /> : "No Stream Available"}
+              </div>
+            )}
+          </div>
         </div>
       </div>
       <div className="col-span-5 md:col-span-1 h-fit flex flex-col justify-between md:h-full md:mb-12 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4">
