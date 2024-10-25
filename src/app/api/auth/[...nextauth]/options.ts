@@ -5,10 +5,11 @@ import SpotifyProvider from "next-auth/providers/spotify";
 import prismaClient from "@/lib/db";
 import { capitalize } from "lodash";
 import { refreshAccessToken } from "@/lib/action/spotify";
+import { refreshGAccessToken } from "@/lib/action/youtube";
 
 enum Provider {
-  Google = "Google",
-  Spotify = "Spotify",
+  Google = "google",
+  Spotify = "spotify",
 }
 
 export const authOptions: NextAuthOptions = {
@@ -52,8 +53,11 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
       authorization: {
         params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
           scope:
-            "https://www.googleapis.com/auth/youtube.readonly openid email profile",
+            "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/youtube.readonly",
         },
       },
     }),
@@ -72,9 +76,10 @@ export const authOptions: NextAuthOptions = {
     signIn: "/sign-in",
     error: "/sign-in",
   },
+  debug: process.env.NODE_ENV === "development",
   callbacks: {
     async jwt({ token, account, profile }) {
-      if ((account && profile) || token) {
+      if (account && profile) {
         const user = await prismaClient.user.findFirst({
           where: {
             email: profile?.email ?? token?.email,
@@ -82,24 +87,18 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (user) {
-          token.name =
-            profile?.name ??
-            token?.name ??
-            (profile as any)?.display_name ??
-            "";
-          token.email = profile?.email ?? token?.email ?? "";
+          token.name = (profile as any)?.display_name ?? profile.name ?? "";
+          token.email = profile?.email ?? "";
           token.id = user.id;
           token.image = profile?.image ?? "";
-          token.accessToken = account?.access_token ?? token?.accessToken ?? "";
-          token.refreshToken =
-            account?.refresh_token ?? token?.refreshToken ?? "";
-          token.provider = account?.provider ?? token?.provider ?? "";
-          token.accessTokenExpires =
-            account?.expires_at || token?.accessTokenExpires
-              ? Date.now() +
-                (account?.expires_at ?? token?.accessTokenExpires ?? 0) * 1000
-              : undefined;
+          token.accessToken = account?.access_token ?? "";
+          token.refreshToken = account?.refresh_token ?? "";
+          token.provider = account?.provider ?? "";
         }
+      }
+
+      if (account?.expires_at) {
+        token.accessTokenExpires = Date.now() + account.expires_at * 1000;
       }
 
       if (
@@ -108,6 +107,8 @@ export const authOptions: NextAuthOptions = {
       ) {
         if (token.provider === Provider.Spotify) {
           return refreshAccessToken(token);
+        } else if (token.provider === Provider.Google) {
+          return refreshGAccessToken({ token });
         }
       }
       return token;
@@ -180,7 +181,7 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60,
   },
   jwt: {
-    maxAge: 60 * 60,
+    maxAge: 30 * 24 * 60 * 60,
   },
   secret: process.env.NEXT_AUTH_SECRET,
 };

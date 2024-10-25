@@ -44,9 +44,9 @@ function StreamCard({
         background: "linear-gradient(135deg, #5A5B5A 0%, #6B6D6B 100%)",
       }}
     >
-      <CardContent className="p-3.5">
+      <CardContent className="p-2 md:p-3.5">
         <div className="flex items-center space-x-4">
-          <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg">
+          <div className="relative h-20 w-20 md:h-24 md:w-24 flex-shrink-0 overflow-hidden rounded-lg">
             <Image
               src={image}
               layout="fill"
@@ -56,7 +56,9 @@ function StreamCard({
             />
           </div>
           <div className="flex-grow">
-            <h3 className="text-xl font-bold text-[#E0E0E0] mb-1">{title}</h3>
+            <h3 className="text-xl md:text-xl font-bold text-[#E0E0E0] mb-1">
+              {title}
+            </h3>
             <div className="flex items-center space-x-2 text-sm text-[#A9C4D7]">
               {itemType !== "track" && <span>{listSongs?.length} songs</span>}
               {itemType === "track" && (

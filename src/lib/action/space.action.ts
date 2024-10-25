@@ -5,16 +5,15 @@ import { CreateStreamType } from "@/types";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { capitalize } from "lodash";
-import { headers } from "next/headers";
+
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
 export async function createSpace({
   data,
   stream,
-  baseUrl,
 }: {
   data: { spaceName: string };
   stream: CreateStreamType[];
-  baseUrl: string;
 }) {
   try {
     const currentUser = await getServerSession(authOptions);
@@ -59,11 +58,8 @@ export async function getAllSpace() {
     if (!currentUser?.user?.email) {
       throw new Error("User not authenticated");
     }
-
-    const host = headers().get("host");
-    const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
     const res = await fetch(
-      `${host}://${protocol}/api/get-all-spaces/${encodeURIComponent(
+      `${baseUrl}/api/get-all-spaces/${encodeURIComponent(
         currentUser?.user?.email as string
       )}`,
       {
@@ -80,13 +76,7 @@ export async function getAllSpace() {
   }
 }
 
-export async function deleteSpaceApi({
-  id,
-  baseUrl,
-}: {
-  id: string;
-  baseUrl: string;
-}) {
+export async function deleteSpaceApi({ id }: { id: string }) {
   try {
     const res = await fetch(`${baseUrl}/api/space/more/${id}`, {
       method: "DELETE",
@@ -113,19 +103,17 @@ export async function deleteSpaceApi({
 
 export async function getSpaceById({ id }: { id: string }) {
   try {
-    const host = headers().get("host");
-    const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
-    const res = await fetch(`${host}://${protocol}/api/space/more/${id}`, {
+    const res = await fetch(`${baseUrl}/api/space/more/${id}`, {
       method: "GET",
     });
-    if (res.statusText !== "OK") {
+
+    if (res.status !== 200) {
       return {
         status: "Error",
         message: "Something went wrong while fetching space",
       };
     }
     const data = await res.json();
-
     if (!data.data) {
       return {
         status: "Error",
@@ -145,11 +133,9 @@ export async function getSpaceById({ id }: { id: string }) {
 export async function updateSpaceName({
   spaceId,
   spaceName,
-  baseUrl,
 }: {
   spaceId: string;
   spaceName: string;
-  baseUrl: string;
 }) {
   try {
     const res = await fetch(`${baseUrl}/api/space/more/${spaceId}`, {

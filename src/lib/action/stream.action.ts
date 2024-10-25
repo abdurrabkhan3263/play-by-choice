@@ -4,9 +4,10 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { CreateStreamType } from "@/types";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
+
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
 export async function getCurrentUser() {
   try {
@@ -22,11 +23,9 @@ export async function getCurrentUser() {
 export async function updateStream({
   spaceId,
   stream,
-  baseUrl,
 }: {
   spaceId: string;
   stream: CreateStreamType[];
-  baseUrl: string;
 }) {
   try {
     const newStream = await fetch(`${baseUrl}/api/space/more/${spaceId}`, {
@@ -55,11 +54,9 @@ export async function updateStream({
 export async function deleteStream({
   streamId,
   spaceId,
-  baseUrl,
 }: {
   streamId: string;
   spaceId: string;
-  baseUrl: string;
 }) {
   if (!streamId) {
     throw new Error("No stream id provided");
@@ -83,13 +80,7 @@ export async function deleteStream({
   }
 }
 
-export async function upVoteStream({
-  streamId,
-  baseUrl,
-}: {
-  streamId: string;
-  baseUrl: string;
-}) {
+export async function upVoteStream({ streamId }: { streamId: string }) {
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     redirect("/sign-in");
@@ -113,13 +104,7 @@ export async function upVoteStream({
   }
 }
 
-export async function deleteUpVoteStream({
-  streamId,
-  baseUrl,
-}: {
-  streamId: string;
-  baseUrl: string;
-}) {
+export async function deleteUpVoteStream({ streamId }: { streamId: string }) {
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     redirect("/sign-in");
@@ -145,14 +130,9 @@ export async function deleteUpVoteStream({
 
 export async function getCurrentStream({ spaceId }: { spaceId: string }) {
   try {
-    const host = headers().get("host");
-    const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
-    const res = await fetch(
-      `${host}://${protocol}/api/current-stream/${spaceId}`,
-      {
-        method: "GET",
-      }
-    );
+    const res = await fetch(`${baseUrl}/api/current-stream/${spaceId}`, {
+      method: "GET",
+    });
     const resData = await res.json();
     if (!res.ok) {
       throw new Error(resData?.message ?? "Failed to get current stream");
@@ -171,12 +151,10 @@ export async function addCurrentStream({
   spaceId,
   streamId,
   currentStreamId,
-  baseUrl,
 }: {
   spaceId: string;
   streamId: string;
   currentStreamId: string;
-  baseUrl: string;
 }) {
   try {
     const res = await fetch(`${baseUrl}/api/current-stream/${spaceId}`, {
@@ -202,11 +180,9 @@ export async function addCurrentStream({
 export async function playAgainStream({
   spaceId,
   allPlayed,
-  baseUrl,
 }: {
   spaceId: string;
   allPlayed: boolean;
-  baseUrl: string;
 }) {
   try {
     const res = await fetch(`${baseUrl}/api/current-stream/${spaceId}`, {

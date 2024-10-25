@@ -49,7 +49,6 @@ function SpaceCard({
     stream.Upvote.some((upvote) => upvote.userId === userId)
   );
   const { toast } = useToast();
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -57,7 +56,6 @@ function SpaceCard({
       const res = await deleteStreamApi({
         streamId: stream.id,
         spaceId: stream.spaceId,
-        baseUrl,
       });
       if (res.status === "Success") {
         setStream((prev) => prev.filter((item) => item.id !== stream.id));
@@ -73,7 +71,7 @@ function SpaceCard({
   const handleUpVote = async () => {
     setUpvoting(true);
     try {
-      const res = await upVoteStream({ streamId: stream.id, baseUrl });
+      const res = await upVoteStream({ streamId: stream.id });
       if (res.status === "Success") {
         stream.Upvote.push(res.data);
         setIsUpVoted(true);
@@ -97,7 +95,7 @@ function SpaceCard({
   const removeUpvote = async () => {
     setUpvoting(true);
     try {
-      const res = await deleteUpVoteStream({ streamId: stream.id, baseUrl });
+      const res = await deleteUpVoteStream({ streamId: stream.id });
       if (res.status === "Success") {
         stream.Upvote = stream.Upvote.filter(
           (upvote) => upvote.userId !== userId

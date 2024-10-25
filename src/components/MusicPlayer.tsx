@@ -129,13 +129,10 @@ function MusicPlayer({
       }
 
       const handleNextTrack = async () => {
-        const baseUrl =
-          process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
         const { data } = await addCurrentStream({
           spaceId,
           streamId: streamId.current as string,
           currentStreamId: currentStreamId.current,
-          baseUrl,
         });
 
         if (data && data.stream) {

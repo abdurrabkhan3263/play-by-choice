@@ -43,9 +43,7 @@ function DeleteSpace({
     if (isDeleting) return;
     setIsDeleting(true);
     try {
-      const baseUrl =
-        process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
-      const res = await deleteSpaceApi({ id: spaceId, baseUrl });
+      const res = await deleteSpaceApi({ id: spaceId });
       if (res?.status === "Success") {
         toast({
           title: "Success",

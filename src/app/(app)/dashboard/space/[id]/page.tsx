@@ -47,7 +47,7 @@ async function page({
   try {
     currentStream = await getCurrentStream({ spaceId: params.id });
   } catch (error) {
-    console.log("Current Stream", error);
+    console.log("Error: ", error);
   }
 
   return (

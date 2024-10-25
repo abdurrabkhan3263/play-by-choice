@@ -4,6 +4,8 @@ import ListStreams from "@/components/Space/ListSpace";
 import { Metadata } from "next";
 import React, { Suspense } from "react";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Dashboard",
   description: "Dashboard",

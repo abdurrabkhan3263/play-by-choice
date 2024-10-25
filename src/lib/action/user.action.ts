@@ -1,11 +1,8 @@
 "use server";
-export async function deleteAccount({
-  email,
-  baseUrl,
-}: {
-  email: string;
-  baseUrl: string;
-}) {
+
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+
+export async function deleteAccount({ email }: { email: string }) {
   const response = await fetch(`${baseUrl}/api/user/${email}`, {
     method: "DELETE",
     headers: {

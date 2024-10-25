@@ -37,11 +37,8 @@ function NavBar() {
   const handleDeleteAccount = async () => {
     try {
       setIsDelete(true);
-      const baseUrl =
-        process.env.NEXT_PUBLIC_API_BASE_URL || window.location.origin;
       const res = await deleteAccount({
         email: data?.user?.email as string,
-        baseUrl,
       });
       if (res.status === "Success") {
         toast({
