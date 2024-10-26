@@ -1,5 +1,5 @@
 import prismaClient from "@/lib/db";
-import { CreateStreamType } from "@/types";
+import { CreateStreamType, CurrentStream } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(
@@ -214,7 +214,7 @@ export async function PUT(
     const getAddedStream = await prismaClient.stream.findMany({
       where: {
         id: {
-          in: addStream.map((item) => item.id),
+          in: addStream.map((item: { id: string }) => item.id),
         },
       },
       include: {

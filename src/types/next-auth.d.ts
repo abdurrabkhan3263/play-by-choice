@@ -1,5 +1,5 @@
 import "next-auth";
-import { CredentialType } from "@prisma/client";
+import { CredentialType } from ".";
 
 declare module "next-auth" {
   interface User {

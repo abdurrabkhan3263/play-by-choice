@@ -1,4 +1,3 @@
-import { StreamType } from "@prisma/client";
 import { SpotifyApi } from "@types/spotify-api";
 
 declare global {
@@ -138,3 +137,6 @@ declare type AddStreamBtnProps = {
   setStreamUrl: React.Dispatch<React.SetStateAction<string>>;
   streamUrl: string;
 };
+
+declare type CredentialType = "spotify" | "google";
+declare type StreamType = "spotify" | "youtube";
