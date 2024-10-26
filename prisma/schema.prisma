@@ -2,10 +2,15 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// datasource db {
+//   provider = "postgresql"
+//   url      = env("POSTGRES_PRISMA_URL") // uses connection pooling
+//   // directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+// }
 datasource db {
-  provider = "postgresql"
-  url      = env("POSTGRES_PRISMA_URL") // uses connection pooling
-  // directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+  provider  = "postgresql"
+  url       = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
 // Schemas
@@ -30,32 +35,36 @@ model Stream {
   title         String         @default("")
   smallImg      String         @default("")
   bigImg        String         @default("")
+  artists       String?        @default("")
   active        Boolean        @default(false)
   played        Boolean        @default(false)
   playedTs      DateTime?
   createdAt     DateTime       @default(now())
-  user          User           @relation(fields: [userId], references: [id])
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String
   Upvote        Upvote[]
   space         Space          @relation(fields: [spaceId], references: [id], onDelete: Cascade)
   spaceId       String
   CurrentStream CurrentStream?
   popularity    Int?           @default(0)
+  duration      Int?           @default(0)
 }
 
 model CurrentStream {
-  id       String  @id @default(uuid())
-  stream   Stream? @relation(fields: [streamId], references: [id])
-  streamId String  @unique
-  space    Space   @relation(fields: [spaceId], references: [id])
+  id       String @id @default(uuid())
+  stream   Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
+  streamId String @unique
+  space    Space  @relation(fields: [spaceId], references: [id], onDelete: Cascade)
   spaceId  String
+
+  @@unique([spaceId, streamId])
 }
 
 model Upvote {
   id       String  @id @default(uuid())
-  user     User?   @relation(fields: [userId], references: [id])
+  user     User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId   String?
-  stream   Stream? @relation(fields: [streamId], references: [id])
+  stream   Stream? @relation(fields: [streamId], references: [id], onDelete: Cascade)
   streamId String?
 
   @@unique([userId, streamId])
@@ -65,16 +74,16 @@ model Space {
   id            String          @id @default(uuid())
   CurrentStream CurrentStream[]
   Stream        Stream[]
-  createdBy     User            @relation(fields: [userId], references: [id])
+  createdBy     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String
   name          String?         @default("Untitled")
   createdAt     DateTime        @default(now())
+  type          StreamType
 }
 
 enum Provider {
   Google
-  Github
-  Credential
+  Spotify
 }
 
 enum StreamType {

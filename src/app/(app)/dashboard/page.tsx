@@ -1,8 +1,17 @@
+import DashboardSpaceCardSkeleton from "@/components/Skeleton/DashboardSpaceCard";
 import CreateSpaceButton from "@/components/Space/CreateSpaceButton";
 import ListStreams from "@/components/Space/ListSpace";
-import React from "react";
+import { Metadata } from "next";
+import React, { Suspense } from "react";
 
-function Dashboard() {
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "Dashboard",
+};
+
+async function Dashboard() {
   return (
     <div className="flex justify-center">
       <div
@@ -15,7 +24,9 @@ function Dashboard() {
             <CreateSpaceButton />
           </div>
         </div>
-        <ListStreams />
+        <Suspense fallback={<DashboardSpaceCardSkeleton />}>
+          <ListStreams />
+        </Suspense>
       </div>
     </div>
   );

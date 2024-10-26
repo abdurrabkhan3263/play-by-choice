@@ -1,80 +1,115 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import Github from "next-auth/providers/github";
-import Credentials from "next-auth/providers/credentials";
+import SpotifyProvider from "next-auth/providers/spotify";
 import prismaClient from "@/lib/db";
-import bcrypt from "bcrypt";
+import { capitalize } from "lodash";
+import { refreshAccessToken } from "@/lib/action/spotify";
+import { refreshGAccessToken } from "@/lib/action/youtube";
+import { Provider as PrismaProvider } from "@prisma/client";
 
 enum Provider {
-  Google = "Google",
-  Github = "Github",
-  Credential = "Credential",
+  Google = "google",
+  Spotify = "spotify",
 }
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    Credentials({
-      name: "credential",
-      credentials: {
-        email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials: any): Promise<any> {
-        if (credentials) {
-          const user = await prismaClient.user.findUnique({
-            where: { email: credentials?.email },
-          });
-          if (user) {
-            if (user.provider !== Provider.Credential) {
-              throw new Error(
-                `login-with-other-provider&provider=${user.provider}`
-              );
-            }
-            const isValid = await bcrypt.compare(
-              credentials.password,
-              user.password as string
-            );
-            if (isValid) {
-              return user;
-            } else {
-              throw new Error("invalid-password");
-            }
-          } else {
-            throw new Error("invalid-email");
-          }
-        } else {
-          return null;
-        }
-      },
-    }),
+    // Credentials({
+    //   name: "credential",
+    //   credentials: {
+    //     email: { label: "Email", type: "text" },
+    //     password: { label: "Password", type: "password" },
+    //   },
+    //   async authorize(credentials: any): Promise<any> {
+    //     if (credentials) {
+    //       const user = await prismaClient.user.findUnique({
+    //         where: { email: credentials?.email },
+    //       });
+    //       if (user) {
+    //         if (user.provider !== Provider.Credential) {
+    //           throw new Error(
+    //             `login-with-other-provider&provider=${user.provider}`
+    //           );
+    //         }
+    //         const isValid = await bcrypt.compare(
+    //           credentials.password,
+    //           user.password as string
+    //         );
+    //         if (isValid) {
+    //           return user;
+    //         } else {
+    //           throw new Error("invalid-password");
+    //         }
+    //       } else {
+    //         throw new Error("invalid-email");
+    //       }
+    //     } else {
+    //       return null;
+    //     }
+    //   },
+    // }),
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+          scope:
+            "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/youtube.readonly",
+        },
+      },
     }),
-    Github({
-      clientId: process.env.GITHUB_CLIENT_ID as string,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+    SpotifyProvider({
+      clientId: process.env.SPOTIFY_CLIENT_ID as string,
+      clientSecret: process.env.SPOTIFY_CLIENT_SECRET as string,
+      authorization: {
+        params: {
+          scope:
+            "user-read-email user-read-private user-modify-playback-state user-read-playback-state playlist-modify-public playlist-modify-private user-read-currently-playing streaming",
+        },
+      },
     }),
   ],
   pages: {
     signIn: "/sign-in",
     error: "/sign-in",
   },
+  debug: process.env.NODE_ENV === "development",
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account && profile) {
         const user = await prismaClient.user.findFirst({
           where: {
-            email: profile?.email,
+            email: profile?.email ?? token?.email,
           },
         });
 
         if (user) {
-          token.name = profile?.name ?? "";
+          token.name = (profile as any)?.display_name ?? profile.name ?? "";
           token.email = profile?.email ?? "";
           token.id = user.id;
           token.image = profile?.image ?? "";
+          token.accessToken = account?.access_token ?? "";
+          token.refreshToken = account?.refresh_token ?? "";
+          token.provider = account?.provider ?? "";
+        }
+      }
+
+      if (account?.expires_at) {
+        token.accessTokenExpires = account.expires_at * 1000;
+      }
+
+      if (
+        token.accessTokenExpires &&
+        Date.now() >= token.accessTokenExpires - 2 * 60 * 1000
+      ) {
+        if (token.provider === Provider.Spotify) {
+          return refreshAccessToken(token);
+        } else if (token.provider === Provider.Google) {
+          return refreshGAccessToken({ token });
         }
       }
       return token;
@@ -85,20 +120,28 @@ export const authOptions: NextAuthOptions = {
           session.user.email = token?.email ?? "";
           session.user.id = token.id ?? "";
           session.user.name = token.name ?? "";
+          session.user.accessToken = token.accessToken ?? "";
+          session.user.refreshToken = token.refreshToken ?? "";
+          session.user.provider = token.provider ?? "";
+          session.user.accessTokenExpires =
+            token.accessTokenExpires ?? undefined;
         }
       }
       return session;
     },
-    async signIn({ account, profile, credentials }) {
-      if (credentials) {
-        return true;
-      }
+    async signIn({ account, profile }) {
       try {
         const isUserExits = await prismaClient.user.findFirst({
           where: {
             email: profile?.email,
           },
         });
+        if (
+          account?.provider === "spotify" &&
+          (profile as any)?.product !== "premium"
+        ) {
+          return `/sign-in?error=premium-account-required`;
+        }
         if (
           isUserExits &&
           (isUserExits?.provider).toLowerCase() !==
@@ -110,13 +153,14 @@ export const authOptions: NextAuthOptions = {
         if (!isUserExits) {
           const createUser = await prismaClient.user.create({
             data: {
-              name: profile?.name,
-              provider: account?.provider === "google" ? "Google" : "Github",
+              name:
+                profile?.name ?? ((profile as any)?.display_name as Provider),
+              provider: capitalize(account?.provider) as PrismaProvider,
               email: profile?.email as string,
               image:
                 account?.provider === "google"
                   ? (profile as any)?.picture
-                  : (profile as any)?.avatar_url,
+                  : (profile as any)?.images[0]?.url,
             },
           });
           if (!createUser) {
@@ -134,6 +178,9 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60,
+  },
+  jwt: {
     maxAge: 30 * 24 * 60 * 60,
   },
   secret: process.env.NEXT_AUTH_SECRET,

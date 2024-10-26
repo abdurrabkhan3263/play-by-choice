@@ -3,15 +3,15 @@ import { CreateStreamType } from "@/types";
 import prismaClient from "@/lib/db";
 
 export async function POST(req: NextRequest) {
-  const { spaceName, streams, email } = await req.json();
+  const { spaceName, streams, email, type } = await req.json();
 
-  const checkUserExist = await prismaClient.user.findUnique({
+  const checkUserExits = await prismaClient.user.findUnique({
     where: {
       email,
     },
   });
 
-  if (!checkUserExist) {
+  if (!checkUserExits) {
     return NextResponse.json(
       {
         status: "Error",
@@ -25,7 +25,8 @@ export async function POST(req: NextRequest) {
     const createSpace = await prismaClient.space.create({
       data: {
         name: spaceName,
-        userId: checkUserExist.id,
+        userId: checkUserExits.id,
+        type,
       },
     });
 
@@ -40,13 +41,28 @@ export async function POST(req: NextRequest) {
     }
 
     if (Array.isArray(streams) && streams.length > 0) {
-      const insertedStreamWithSpaceId = streams.map(
-        (stream: CreateStreamType) => ({
-          ...stream,
-          spaceId: createSpace.id,
-          userId: checkUserExist.id,
-        })
-      );
+      const insertedStreamWithSpaceId = streams.flatMap((item) => {
+        if (item?.itemType === "album" || item?.itemType === "playlist") {
+          return (item.listSongs ?? []).map((song: CreateStreamType) => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { itemType, ...rest } = song;
+            return {
+              ...rest,
+              spaceId: createSpace.id,
+              userId: checkUserExits.id,
+            };
+          });
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { itemType, ...rest } = item;
+        return [
+          {
+            ...rest,
+            spaceId: createSpace.id,
+            userId: checkUserExits.id,
+          },
+        ];
+      });
 
       const insertedStream = await prismaClient.stream.createMany({
         data: insertedStreamWithSpaceId,

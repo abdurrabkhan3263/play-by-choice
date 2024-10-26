@@ -5,7 +5,9 @@ import { CreateStreamType } from "@/types";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
+import { NextResponse } from "next/server";
+
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
 export async function getCurrentUser() {
   try {
@@ -23,23 +25,18 @@ export async function updateStream({
   stream,
 }: {
   spaceId: string;
-  stream: CreateStreamType;
+  stream: CreateStreamType[];
 }) {
   try {
-    const host = headers().get("host");
-    const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
-    const newStream = await fetch(
-      `${protocol}://${host}/api/space/more/${spaceId}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          stream: stream,
-        }),
-      }
-    );
+    const newStream = await fetch(`${baseUrl}/api/space/more/${spaceId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        stream: stream,
+      }),
+    });
     const res = await newStream.json();
 
     if (!newStream.ok) {
@@ -64,17 +61,15 @@ export async function deleteStream({
   if (!streamId) {
     throw new Error("No stream id provided");
   }
-  const host = headers().get("host");
-  const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
 
   try {
-    const res = await fetch(`${protocol}://${host}/api/stream/${streamId}`, {
+    const res = await fetch(`${baseUrl}/api/stream/${streamId}`, {
       method: "DELETE",
     });
     if (!res.ok) {
       throw new Error("Failed to delete stream");
     }
-    revalidatePath(`/dashboard/stream/${spaceId}`);
+    revalidatePath(`/dashboard/space/${spaceId}`);
     return await res.json();
   } catch (error) {
     throw new Error(
@@ -90,10 +85,8 @@ export async function upVoteStream({ streamId }: { streamId: string }) {
   if (!currentUser) {
     redirect("/sign-in");
   }
-  const host = headers().get("host");
-  const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
   try {
-    const res = await fetch(`${protocol}://${host}/api/upvote/${streamId}`, {
+    const res = await fetch(`${baseUrl}/api/upvote/${streamId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -116,10 +109,8 @@ export async function deleteUpVoteStream({ streamId }: { streamId: string }) {
   if (!currentUser) {
     redirect("/sign-in");
   }
-  const host = headers().get("host");
-  const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
   try {
-    const res = await fetch(`${protocol}://${host}/api/upvote/${streamId}`, {
+    const res = await fetch(`${baseUrl}/api/upvote/${streamId}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -133,6 +124,95 @@ export async function deleteUpVoteStream({ streamId }: { streamId: string }) {
   } catch (error) {
     throw new Error(
       error instanceof Error ? error.message : "Failed to delete upvote"
+    );
+  }
+}
+
+export async function getCurrentStream({ spaceId }: { spaceId: string }) {
+  try {
+    const res = await fetch(`${baseUrl}/api/current-stream/${spaceId}`, {
+      method: "GET",
+    });
+    const resData = await res.json();
+    if (!res.ok) {
+      throw new Error(resData?.message ?? "Failed to get current stream");
+    }
+    return resData;
+  } catch (error) {
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Something went when getting the current stream"
+    );
+  }
+}
+
+export async function addCurrentStream({
+  spaceId,
+  streamId,
+  currentStreamId,
+}: {
+  spaceId: string;
+  streamId: string;
+  currentStreamId: string;
+}) {
+  try {
+    const res = await fetch(`${baseUrl}/api/current-stream/${spaceId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ streamId, currentStreamId }),
+    });
+    const resData = await res.json();
+    if (!res.ok) {
+      throw new Error(resData?.message ?? "Failed to add current stream");
+    }
+    revalidatePath(`/dashboard/space/${spaceId}`);
+    return resData;
+  } catch (error) {
+    throw new Error(
+      error instanceof Error ? error.message : "Failed to add current stream"
+    );
+  }
+}
+
+export async function playAgainStream({
+  spaceId,
+  allPlayed,
+}: {
+  spaceId: string;
+  allPlayed: boolean;
+}) {
+  try {
+    const res = await fetch(`${baseUrl}/api/current-stream/${spaceId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ allPlayed }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(
+        errorData.message ||
+          `Failed to play again stream: ${res.status} ${res.statusText}`
+      );
+    }
+
+    revalidatePath(`/dashboard/space/${spaceId}`);
+    return await res.json();
+  } catch (error) {
+    // Instead of throwing an error, return an error response
+    return NextResponse.json(
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred",
+      },
+      { status: 500 }
     );
   }
 }

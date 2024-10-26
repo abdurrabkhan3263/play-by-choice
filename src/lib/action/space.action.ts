@@ -4,7 +4,9 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { CreateStreamType } from "@/types";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
+import { capitalize } from "lodash";
+
+const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
 export async function createSpace({
   data,
@@ -15,14 +17,20 @@ export async function createSpace({
 }) {
   try {
     const currentUser = await getServerSession(authOptions);
-    const host = headers().get("host");
-    const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
-    const addStream = await fetch(`${protocol}://${host}/api/space`, {
+
+    if (!currentUser?.user?.email) {
+      throw new Error("User not authenticated");
+    }
+    const addStream = await fetch(`${baseUrl}/api/space`, {
       method: "POST",
       body: JSON.stringify({
         spaceName: data.spaceName,
         streams: stream,
         email: currentUser?.user?.email,
+        type:
+          capitalize(currentUser?.user?.provider) === "Google"
+            ? "Youtube"
+            : "Spotify",
       }),
       headers: {
         "Content-Type": "application/json",
@@ -35,17 +43,23 @@ export async function createSpace({
     revalidatePath("/dashboard");
     return res;
   } catch (error) {
-    console.log("Error is:- ", error);
+    console.error("Error while creating space", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message || "Something went wrong while creating space"
+        : String(error) || "Something went wrong while creating space"
+    );
   }
 }
 
 export async function getAllSpace() {
   try {
     const currentUser = await getServerSession(authOptions);
-    const host = headers().get("host");
-    const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
+    if (!currentUser?.user?.email) {
+      throw new Error("User not authenticated");
+    }
     const res = await fetch(
-      `${protocol}://${host}/api/get-all-spaces/${encodeURIComponent(
+      `${baseUrl}/api/get-all-spaces/${encodeURIComponent(
         currentUser?.user?.email as string
       )}`,
       {
@@ -54,15 +68,17 @@ export async function getAllSpace() {
     );
     return res;
   } catch (error) {
-    console.log("Error is:- ", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message || "Something went wrong while getting the space"
+        : String(error) || "Something went wrong while getting the space"
+    );
   }
 }
 
 export async function deleteSpaceApi({ id }: { id: string }) {
   try {
-    const host = headers().get("host");
-    const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
-    const res = await fetch(`${protocol}://${host}/api/space/more/${id}`, {
+    const res = await fetch(`${baseUrl}/api/space/more/${id}`, {
       method: "DELETE",
     });
     if (res.statusText !== "OK") {
@@ -77,25 +93,27 @@ export async function deleteSpaceApi({ id }: { id: string }) {
       message: "Space is deleted successfully",
     };
   } catch (error) {
-    console.log("Error is:- ", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message || "Something went wrong while deleting space"
+        : String(error) || "Something went wrong while deleting space"
+    );
   }
 }
 
 export async function getSpaceById({ id }: { id: string }) {
   try {
-    const host = headers().get("host");
-    const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
-    const res = await fetch(`${protocol}://${host}/api/space/more/${id}`, {
+    const res = await fetch(`${baseUrl}/api/space/more/${id}`, {
       method: "GET",
     });
-    if (res.statusText !== "OK") {
+
+    if (res.status !== 200) {
       return {
         status: "Error",
         message: "Something went wrong while fetching space",
       };
     }
     const data = await res.json();
-
     if (!data.data) {
       return {
         status: "Error",
@@ -104,7 +122,11 @@ export async function getSpaceById({ id }: { id: string }) {
     }
     return data.data;
   } catch (error) {
-    console.log("Error is:- ", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message || "Something went wrong while getting the space"
+        : String(error) || "Something went wrong while getting the space"
+    );
   }
 }
 
@@ -116,9 +138,7 @@ export async function updateSpaceName({
   spaceName: string;
 }) {
   try {
-    const host = headers().get("host");
-    const protocol = process?.env.NODE_ENV === "development" ? "http" : "https";
-    const res = await fetch(`${protocol}://${host}/api/space/more/${spaceId}`, {
+    const res = await fetch(`${baseUrl}/api/space/more/${spaceId}`, {
       method: "PATCH",
       body: JSON.stringify({
         spaceName,
@@ -133,12 +153,16 @@ export async function updateSpaceName({
         message: "Something went wrong while updating space name",
       };
     }
-    revalidatePath(`/dashboard/stream/${spaceId}`);
+    revalidatePath(`/dashboard/space/${spaceId}`);
     return {
       status: "Success",
       message: "Space name updated successfully",
     };
   } catch (error) {
-    console.log("Error is:- ", error);
+    throw new Error(
+      error instanceof Error
+        ? error.message || "Something went wrong while updating space name"
+        : String(error) || "Something went wrong while updating space name"
+    );
   }
 }

@@ -5,7 +5,14 @@ import React from "react";
 import { Button } from "../ui/button";
 import { CurrentStream, StreamTypeApi } from "@/types";
 import { timeAgo } from "@/lib/utils";
-import { Loader2, Music, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
+import {
+  CheckCircleIcon,
+  Loader2,
+  Music,
+  ThumbsDown,
+  ThumbsUp,
+  Trash2,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +48,7 @@ function SpaceCard({
   const [isUpVoted, setIsUpVoted] = React.useState(
     stream.Upvote.some((upvote) => upvote.userId === userId)
   );
+  // const [deviceWidth, setDeviceWidth] = React.useState(window.innerWidth);
   const { toast } = useToast();
 
   const handleDelete = async () => {
@@ -55,8 +63,8 @@ function SpaceCard({
         setIsDeleting(false);
         setIsOpen(false);
       }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.log("Error happened", error);
       setIsDeleting(false);
     }
   };
@@ -111,10 +119,28 @@ function SpaceCard({
     }
   };
 
+  const imageHostName = new URL(stream.bigImg)?.hostname;
+
+  // const shouldShowImage =
+  //   (stream?.type === "Youtube" &&
+  //     (!currentStream || currentStream?.streamId !== stream.id)) ||
+  //   deviceWidth > 786 ||
+  //   stream?.type === "Spotify";
+
+  // const isShowYoutubeStream =
+  //   stream.type === "Youtube" &&
+  //   currentStream &&
+  //   currentStream?.streamId === stream.id;
+  // && deviceWidth <= 786;
+
   return (
-    <div className="relative w-full sm:w-[48%] md:w-[40%] lg:w-full p-4 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:shadow-xl bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 group">
+    <div className="relative w-full h-fit shrink-0 sm:w-[48%] md:w-[40%] lg:w-full p-4 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:shadow-xl bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 group">
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
-        <div className="relative aspect-square w-full lg:w-40 overflow-hidden rounded-lg bg-gray-700 shadow-inner group-hover:shadow-lg transition-all duration-300">
+        <div
+          className={`relative ${
+            imageHostName === "i.ytimg.com" ? "aspect-video" : "aspect-square"
+          } w-full lg:w-28 overflow-hidden rounded-lg bg-gray-700 shadow-inner group-hover:shadow-lg transition-all duration-300`}
+        >
           <Image
             src={stream.bigImg || "/No_Image_Available.jpg"}
             layout="fill"
@@ -125,10 +151,17 @@ function SpaceCard({
         </div>
         <div className="flex flex-col justify-between flex-grow">
           <div>
-            <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
-              {stream.title}
-              {currentStream && stream.id === currentStream.streamId && (
-                <Music className="text-blue-400 animate-pulse" size={24} />
+            <h2 className="text-xl text-balance overflow-hidden font-bold text-white mb-2 flex items-center gap-2">
+              {stream.title.length >= 50
+                ? stream.title.slice(0, 50) + "..... "
+                : stream.title}
+              {currentStream &&
+                stream.id === currentStream.streamId &&
+                !stream.played && (
+                  <Music className="text-blue-400 animate-pulse" size={24} />
+                )}
+              {stream.played && !stream.active && (
+                <CheckCircleIcon className="text-green-400" size={24} />
               )}
             </h2>
             <p className="text-sm text-gray-400">
@@ -188,64 +221,68 @@ function SpaceCard({
           </div>
         </div>
       </div>
-      {(role === "Owner" || role === "Creator") && (
-        <div className="absolute top-2 right-2">
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-gray-400 hover:text-white hover:bg-red-600/20 rounded-full transition-colors duration-300"
-              >
-                <span className="sr-only">Delete Stream</span>
-                <Trash2 className="h-5 w-5" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px] bg-gray-800 text-gray-100 border-gray-700">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-semibold">
-                  Delete Space
-                </DialogTitle>
-                <DialogDescription className="text-gray-400">
-                  Are you sure you want to delete this space? This action cannot
-                  be undone.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="mt-4 p-4 bg-gray-900 rounded-lg">
-                <h3 className="font-medium text-gray-200">{stream.title}</h3>
-                <p className="text-sm text-gray-400">
-                  Created by {stream.user.name}
-                </p>
-              </div>
-              <DialogFooter className="sm:justify-between">
+      {currentStream && currentStream.streamId === stream.id ? (
+        <></>
+      ) : (
+        (role === "Owner" || role === "Creator") && (
+          <div className="absolute top-2 right-2">
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+              <DialogTrigger asChild>
                 <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={handleDelete}
-                  className="bg-red-600 hover:bg-red-700 text-white transition-colors duration-300"
-                  disabled={isDeleting}
+                  variant="ghost"
+                  size="icon"
+                  className="text-gray-400 hover:text-white hover:bg-red-600/20 rounded-full transition-colors duration-300"
                 >
-                  {isDeleting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Deleting...
-                    </>
-                  ) : (
-                    "Delete"
-                  )}
+                  <span className="sr-only">Delete Stream</span>
+                  <Trash2 className="h-5 w-5" />
                 </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsOpen(false)}
-                  className="text-gray-300 border-gray-600 hover:bg-gray-700 transition-colors duration-300"
-                >
-                  Cancel
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px] bg-gray-800 text-gray-100 border-gray-700">
+                <DialogHeader>
+                  <DialogTitle className="text-xl font-semibold">
+                    Delete Space
+                  </DialogTitle>
+                  <DialogDescription className="text-gray-400">
+                    Are you sure you want to delete this space? This action
+                    cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="mt-4 p-4 bg-gray-900 rounded-lg">
+                  <h3 className="font-medium text-gray-200">{stream.title}</h3>
+                  <p className="text-sm text-gray-400">
+                    Created by {stream.user.name}
+                  </p>
+                </div>
+                <DialogFooter className="sm:justify-between">
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={handleDelete}
+                    className="bg-red-600 hover:bg-red-700 text-white transition-colors duration-300"
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      "Delete"
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsOpen(false)}
+                    className="text-gray-300 border-gray-600 hover:bg-gray-700 transition-colors duration-300"
+                  >
+                    Cancel
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+        )
       )}
     </div>
   );

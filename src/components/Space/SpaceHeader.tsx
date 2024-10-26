@@ -33,7 +33,7 @@ function SpaceHeader({ streamList }: { streamList: SpaceStreamList }) {
   const input = useRef<HTMLInputElement>(null);
 
   const handleShare = () => {
-    const link = `${window.location.origin}/dashboard/stream/${spaceId}`;
+    const link = `${window.location.origin}/dashboard/space/${spaceId}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(link)}`;
     window.open(whatsappUrl, "_blank");
   };
@@ -41,7 +41,10 @@ function SpaceHeader({ streamList }: { streamList: SpaceStreamList }) {
   const changeSpaceName = useCallback(async () => {
     try {
       if (streamList.name === spaceName) return;
-      const updatedSpace = await updateSpaceName({ spaceId, spaceName });
+      const updatedSpace = await updateSpaceName({
+        spaceId,
+        spaceName,
+      });
       if (updatedSpace?.status === "Success") {
         streamList.name = spaceName;
         toast({
@@ -59,7 +62,7 @@ function SpaceHeader({ streamList }: { streamList: SpaceStreamList }) {
     } finally {
       setIsEditing(false);
     }
-  }, [spaceName, isEditing, streamList]);
+  }, [streamList, spaceName, spaceId, toast]);
 
   useEffect(() => {
     if (isEditing && input.current) {
@@ -68,7 +71,7 @@ function SpaceHeader({ streamList }: { streamList: SpaceStreamList }) {
     if (!isEditing && spaceName !== streamList.name) {
       changeSpaceName();
     }
-  }, [isEditing]);
+  }, [changeSpaceName, isEditing, spaceName, streamList.name]);
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
@@ -88,9 +91,9 @@ function SpaceHeader({ streamList }: { streamList: SpaceStreamList }) {
   }, [changeSpaceName, isEditing]);
 
   return (
-    <Card className="w-full bg-[#171F2D] border-none shadow-none">
+    <Card className="w-full bg-[#171F2D] h-fit border-none shadow-none">
       <CardContent className="p-6">
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-end gap-4">
           <div className="flex items-center gap-2" ref={editingContainer}>
             <Input
               value={spaceName}
@@ -151,7 +154,12 @@ function SpaceHeader({ streamList }: { streamList: SpaceStreamList }) {
                   spaceId={spaceId}
                   place="in_stream"
                 >
-                  <DropdownMenuItem className="text-red-400 focus:text-red-300 focus:bg-red-900">
+                  <DropdownMenuItem
+                    className="text-red-400 focus:text-red-300 focus:bg-red-900"
+                    onSelect={(event) => {
+                      event.preventDefault();
+                    }}
+                  >
                     <Trash2 className="w-5 h-5 mr-2" />
                     Delete Space
                   </DropdownMenuItem>

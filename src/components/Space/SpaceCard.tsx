@@ -18,16 +18,26 @@ export default function SpaceCard({
   createdBy,
 }: SpaceType) {
   const router = useRouter();
+  let imageHostName = "";
+
+  if (Stream.length > 0 && Stream[0].bigImg) {
+    const url = new URL(Stream[0].bigImg);
+    imageHostName = url.hostname;
+  }
 
   return (
     <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl">
       <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-        <div className="p-6 lg:p-8">
+        <div className="p-4 xl:p-6 lg:p-8">
           <div className="flex flex-col lg:flex-row items-start gap-6">
             <div
-              className="relative aspect-square w-full lg:w-36 overflow-hidden rounded-lg bg-gray-700 shadow-inner"
-              onClick={() => router.push(`/dashboard/stream/${id}`)}
+              className={`relative ${
+                imageHostName === "i.ytimg.com"
+                  ? "aspect-video lg:aspect-square"
+                  : "aspect-square"
+              } w-full lg:w-36 overflow-hidden rounded-lg bg-gray-700 shadow-inner`}
+              onClick={() => router.push(`/dashboard/space/${id}`)}
             >
               {Stream.length > 0 && Stream[0].bigImg ? (
                 <Image
@@ -44,7 +54,7 @@ export default function SpaceCard({
               )}
             </div>
             <div className="flex-1 space-y-4">
-              <Link href={`/dashboard/stream/${id}`}>
+              <Link href={`/dashboard/space/${id}`}>
                 <h2 className="text-2xl font-bold leading-tight text-gray-100 group-hover:text-gray-300 transition-colors duration-200">
                   {name}
                 </h2>
@@ -55,13 +65,13 @@ export default function SpaceCard({
                   {dateFormat(createdAt)}
                 </time>
               </div>
-              <div className="flex items-center space-x-3 pt-4">
+              <div className="flex items-center space-x-3 pt-2 xl:pt-4">
                 <Avatar className="h-10 w-10">
                   <AvatarImage
                     src={createdBy.image || ""}
                     alt={createdBy.name}
                   />
-                  <AvatarFallback>{createdBy.name.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>{createdBy.name?.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="text-sm">
                   <p className="font-medium text-gray-200">Created by</p>

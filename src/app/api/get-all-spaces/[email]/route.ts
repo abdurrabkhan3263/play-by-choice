@@ -76,6 +76,12 @@ export async function GET(
         select: {
           id: true,
           bigImg: true,
+          type: true,
+        },
+        orderBy: {
+          Upvote: {
+            _count: "desc",
+          },
         },
       },
     },

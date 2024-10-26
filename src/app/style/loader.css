@@ -1,0 +1,97 @@
+.container {
+  width: 100px;
+  height: 100px;
+  background-color: #abc4aa;
+  border-radius: 10px;
+  position: relative;
+  box-shadow: 3px 3px 0 0 #675d50;
+}
+
+.plate {
+  width: fit-content;
+}
+
+.plate .black,
+.plate .white,
+.plate .center,
+.plate .border {
+  border-radius: 100%;
+}
+
+.container,
+.plate .black,
+.plate .white,
+.plate .border {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plate .black {
+  width: 85px;
+  height: 85px;
+  background-color: #675d50;
+  animation: rotation 2s infinite linear;
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(359deg);
+  }
+}
+
+.plate .white {
+  width: 40px;
+  height: 40px;
+  background-color: #f3deba;
+}
+
+.plate .center {
+  width: 10px;
+  height: 10px;
+  background-color: #675d50;
+}
+
+.plate .border {
+  width: 60px;
+  height: 60px;
+  border-top: 2px solid #f3deba;
+  border-bottom: 2px solid #f3deba;
+  border-left: 2px solid #675d50;
+  border-right: 2px solid #675d50;
+}
+
+.player {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  width: fit-content;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  margin-bottom: 5px;
+  margin-right: 5px;
+  rotate: -45deg;
+}
+
+.player .circ {
+  width: 15px;
+  height: 15px;
+  background-color: #f3deba;
+  border-radius: 100%;
+  z-index: 1;
+}
+
+.player .rect {
+  width: 6px;
+  height: 30px;
+  background-color: #f3deba;
+  position: absolute;
+  bottom: 0;
+  margin-bottom: 3px;
+}
