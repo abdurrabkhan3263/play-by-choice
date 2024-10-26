@@ -152,13 +152,13 @@ export async function refreshAccessToken(token: JWT) {
 
     const refreshedTokens = await response.json();
     if (!response.ok) {
-      throw refreshAccessToken;
+      return token;
     }
 
     return {
       ...token,
       accessToken: refreshedTokens.access_token,
-      accessTokenExpires: refreshedTokens.expires_in * 1000,
+      accessTokenExpires: Date.now() + refreshedTokens.expires_in * 1000,
       refreshToken: refreshedTokens.refresh_token ?? token.refreshToken,
     };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

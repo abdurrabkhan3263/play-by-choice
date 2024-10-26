@@ -44,11 +44,15 @@ export async function refreshGAccessToken({ token }: { token: JWT }) {
       body: params.toString(),
     });
     const refToken = await response.json();
-    console.log("Refreshed Google access token:", refToken);
+
+    if (!response.ok) {
+      return token;
+    }
+
     return {
       ...token,
       accessToken: refToken.access_token,
-      accessTokenExpires: refToken.expires_in * 1000,
+      accessTokenExpires: Date.now() + refToken.expires_in * 1000,
       refreshToken: refToken.refresh_token ?? token.refreshToken,
     };
   } catch (error) {

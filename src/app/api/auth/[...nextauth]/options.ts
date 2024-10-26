@@ -80,7 +80,6 @@ export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === "development",
   callbacks: {
     async jwt({ token, account, profile }) {
-      console.log({ account, profile });
       if (account && profile) {
         const user = await prismaClient.user.findFirst({
           where: {

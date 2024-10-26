@@ -48,6 +48,7 @@ function SpaceCard({
   const [isUpVoted, setIsUpVoted] = React.useState(
     stream.Upvote.some((upvote) => upvote.userId === userId)
   );
+  // const [deviceWidth, setDeviceWidth] = React.useState(window.innerWidth);
   const { toast } = useToast();
 
   const handleDelete = async () => {
@@ -120,8 +121,20 @@ function SpaceCard({
 
   const imageHostName = new URL(stream.bigImg)?.hostname;
 
+  // const shouldShowImage =
+  //   (stream?.type === "Youtube" &&
+  //     (!currentStream || currentStream?.streamId !== stream.id)) ||
+  //   deviceWidth > 786 ||
+  //   stream?.type === "Spotify";
+
+  // const isShowYoutubeStream =
+  //   stream.type === "Youtube" &&
+  //   currentStream &&
+  //   currentStream?.streamId === stream.id;
+  // && deviceWidth <= 786;
+
   return (
-    <div className="relative w-full sm:w-[48%] md:w-[40%] lg:w-full p-4 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:shadow-xl bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 group">
+    <div className="relative w-full h-fit shrink-0 sm:w-[48%] md:w-[40%] lg:w-full p-4 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:shadow-xl bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 group">
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
         <div
           className={`relative ${
@@ -138,7 +151,7 @@ function SpaceCard({
         </div>
         <div className="flex flex-col justify-between flex-grow">
           <div>
-            <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+            <h2 className="text-xl text-balance overflow-hidden font-bold text-white mb-2 flex items-center gap-2">
               {stream.title.length >= 50
                 ? stream.title.slice(0, 50) + "..... "
                 : stream.title}

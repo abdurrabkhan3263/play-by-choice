@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { CreateStreamType, InsideSpaceProps, StreamTypeApi } from "@/types";
+import {
+  CreateStreamType,
+  CurrentStream,
+  InsideSpaceProps,
+  StreamTypeApi,
+} from "@/types";
 import StreamCard from "../Stream/SpaceCard";
 import { Input } from "../ui/input";
 import AddStreamBtn from "../AddStreamBtn";
@@ -36,7 +41,6 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
     check: false,
   });
   const [isExpanded, setIsExpanded] = React.useState<boolean>(false);
-
   useEffect(() => {
     const addStream = async () => {
       if (addedStream[0].itemType === "track" && !isListSong?.check) {
@@ -97,7 +101,7 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
       <div className="col-span-5 bg-gradient-to-br flex flex-col overflow-hidden gap-4 from-gray-800 to-gray-900 md:col-span-2 lg:col-span-3 xl:col-span-4 rounded-xl p-4">
         <div className="flex flex-col gap-6 flex-1 overflow-y-auto custom_scroll">
           <SpaceHeader streamList={streamList} />
-          <div className="flex flex-col gap-6 flex-1 lg:overflow-y-auto custom_scroll">
+          <div className="flex lg:flex-col lg:flex-grow flex-shrink flex-row flex-wrap gap-6 flex-1 lg:overflow-y-auto custom_scroll">
             {Array.isArray(listStream) &&
             status === "authenticated" &&
             listStream.length > 0 ? (
@@ -113,7 +117,7 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
                   <StreamCard
                     key={stream.id}
                     stream={stream}
-                    currentStream={streamList.CurrentStream[0]}
+                    currentStream={currentStream.data as CurrentStream}
                     role={role}
                     setStream={setListStream}
                     userId={data?.user.id}
@@ -121,7 +125,7 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
                 );
               })
             ) : (
-              <div className="flex justify-center items-center h-full w-full">
+              <div className="flex justify-center items-center flex-1">
                 {status === "loading" ? <Loader /> : "No Stream Available"}
               </div>
             )}
@@ -261,7 +265,7 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
           </div>
         )}
 
-        {spaceType === "Youtube" && currentStream?.data && (
+        {currentStream?.data && spaceType === "Youtube" && (
           <YoutubePlayer currentStream={currentStream.data} />
         )}
       </div>

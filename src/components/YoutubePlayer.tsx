@@ -40,9 +40,12 @@ function YoutubePlayer({ currentStream }: { currentStream: CurrentStream }) {
       });
     }
 
-    let done = false;
     async function onPlayerStateChange(event: YT.OnStateChangeEvent) {
-      if (event.data == window.YT.PlayerState.ENDED && !done) {
+      console.log({
+        eventData: event.data,
+        state: window.YT.PlayerState,
+      });
+      if (event.data == window.YT.PlayerState.ENDED) {
         const newVideo: FetchCurrentStream = await addCurrentStream({
           currentStreamId: currentStreamRef.current?.id,
           streamId: currentStreamRef.current.stream?.id,
@@ -57,7 +60,6 @@ function YoutubePlayer({ currentStream }: { currentStream: CurrentStream }) {
         } else {
           stopVideo();
         }
-        done = true;
       }
     }
 
@@ -69,7 +71,7 @@ function YoutubePlayer({ currentStream }: { currentStream: CurrentStream }) {
   }, []);
   return (
     <>
-      <div className="aspect-video mt-4 rounded-md overflow-hidden">
+      <div className="aspect-video md:mt-4 rounded-md overflow-hidden">
         <div id="player"></div>
       </div>
     </>
