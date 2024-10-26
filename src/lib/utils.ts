@@ -10,9 +10,9 @@ export function getStreamType(url: string) {
   const youtubeRegex = /youtube/i;
 
   if (spotifyRegex.test(url)) {
-    return "Spotify";
+    return "spotify";
   } else if (youtubeRegex.test(url)) {
-    return "Youtube";
+    return "youtube";
   }
   return "Unknown";
 }

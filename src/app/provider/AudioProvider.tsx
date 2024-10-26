@@ -22,7 +22,7 @@ async function AudioProvider({
         style={{ height: "calc(100vh - 6rem)" }}
       >
         {children}
-        {currentStream.data && type === "Spotify" && (
+        {currentStream.data && type === "spotify" && (
           <MusicPlayer
             currentStream={currentStreamData}
             token={token}

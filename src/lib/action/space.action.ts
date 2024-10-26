@@ -4,7 +4,6 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/options";
 import { CreateStreamType } from "@/types";
 import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
-import { capitalize } from "lodash";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -27,10 +26,7 @@ export async function createSpace({
         spaceName: data.spaceName,
         streams: stream,
         email: currentUser?.user?.email,
-        type:
-          capitalize(currentUser?.user?.provider) === "Google"
-            ? "Youtube"
-            : "Spotify",
+        type: currentUser?.user?.provider === "google" ? "youtube" : "spotify",
       }),
       headers: {
         "Content-Type": "application/json",

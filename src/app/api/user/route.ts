@@ -9,7 +9,7 @@ const CreateUserSchema = z.object({
   password: z
     .string()
     .min(8, { message: "Password must be atleast 8 characters" }),
-  provider: z.enum(["Spotify", "Google"], {
+  provider: z.enum(["spotify", "google"], {
     message: "Invalid provider",
   }),
 });

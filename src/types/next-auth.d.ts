@@ -1,4 +1,5 @@
 import "next-auth";
+import { CredentialType } from "@prisma/client";
 
 declare module "next-auth" {
   interface User {
@@ -15,7 +16,7 @@ declare module "next-auth" {
       image: string;
       accessToken?: string;
       refreshToken?: string;
-      provider: string;
+      provider: CredentialType;
       accessTokenExpires?: number;
     };
   }
@@ -29,7 +30,7 @@ declare module "next-auth/jwt" {
     image: string;
     accessToken?: string;
     refreshToken?: string;
-    provider: string;
+    provider: CredentialType;
     accessTokenExpires?: number;
   }
 }

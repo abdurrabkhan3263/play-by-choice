@@ -1,17 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import SpotifyProvider from "next-auth/providers/spotify";
 import prismaClient from "@/lib/db";
-import { capitalize } from "lodash";
 import { refreshAccessToken } from "@/lib/action/spotify";
 import { refreshGAccessToken } from "@/lib/action/youtube";
-import { Provider as PrismaProvider } from "@prisma/client";
-
-enum Provider {
-  Google = "google",
-  Spotify = "spotify",
-}
+import { CredentialType } from "@prisma/client";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -77,7 +70,7 @@ export const authOptions: NextAuthOptions = {
     signIn: "/sign-in",
     error: "/sign-in",
   },
-  debug: process.env.NODE_ENV === "development",
+  // debug: process.env.NODE_ENV === "development",
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account && profile) {
@@ -94,7 +87,7 @@ export const authOptions: NextAuthOptions = {
           token.image = profile?.image ?? "";
           token.accessToken = account?.access_token ?? "";
           token.refreshToken = account?.refresh_token ?? "";
-          token.provider = account?.provider ?? "";
+          token.provider = account?.provider as CredentialType;
         }
       }
 
@@ -106,9 +99,9 @@ export const authOptions: NextAuthOptions = {
         token.accessTokenExpires &&
         Date.now() >= token.accessTokenExpires - 2 * 60 * 1000
       ) {
-        if (token.provider === Provider.Spotify) {
+        if (token.provider === "spotify") {
           return refreshAccessToken(token);
-        } else if (token.provider === Provider.Google) {
+        } else if (token.provider === "google") {
           return refreshGAccessToken({ token });
         }
       }
@@ -131,11 +124,13 @@ export const authOptions: NextAuthOptions = {
     },
     async signIn({ account, profile }) {
       try {
+        console.log({ account, profile });
         const isUserExits = await prismaClient.user.findFirst({
           where: {
             email: profile?.email,
           },
         });
+        console.log("isUserExits", isUserExits);
         if (
           account?.provider === "spotify" &&
           (profile as any)?.product !== "premium"
@@ -153,9 +148,8 @@ export const authOptions: NextAuthOptions = {
         if (!isUserExits) {
           const createUser = await prismaClient.user.create({
             data: {
-              name:
-                profile?.name ?? ((profile as any)?.display_name as Provider),
-              provider: capitalize(account?.provider) as PrismaProvider,
+              name: profile?.name ?? ((profile as any)?.display_name as string),
+              provider: account?.provider as CredentialType,
               email: profile?.email as string,
               image:
                 account?.provider === "google"
