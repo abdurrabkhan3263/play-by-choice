@@ -265,7 +265,7 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
           </div>
         )}
 
-        {currentStream?.data && spaceType === "Youtube" && (
+        {currentStream?.data && spaceType === "youtube" && (
           <YoutubePlayer currentStream={currentStream.data} />
         )}
       </div>

@@ -64,7 +64,7 @@ function StreamCard({
               {itemType === "track" && (
                 <>
                   <p>{type}</p>
-                  {type !== "Youtube" && (
+                  {type !== "youtube" && (
                     <Play size={16} className="text-gray-400" />
                   )}
                 </>

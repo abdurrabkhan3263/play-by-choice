@@ -75,7 +75,7 @@ function AddStreamBtn({
 
     // Get the stream data based on the type
 
-    if (type === "Youtube") {
+    if (type === "youtube") {
       if (data?.user?.provider !== "google") {
         toast({
           title: "Error",
@@ -143,7 +143,7 @@ function AddStreamBtn({
         setStreamUrl("");
         setLoading(false);
       }
-    } else if (type === "Spotify") {
+    } else if (type === "spotify") {
       if (data?.user?.provider !== "spotify") {
         toast({
           title: "Error",
@@ -247,7 +247,7 @@ function AddStreamBtn({
               return {
                 itemType: "track",
                 title: trackData?.name,
-                type: "Spotify" as StreamType,
+                type: "spotify" as StreamType,
                 extractedId: ID,
                 smallImg: trackData?.album?.images[2]?.url,
                 bigImg: trackData?.album?.images[0]?.url,
