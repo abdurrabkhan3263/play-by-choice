@@ -1,7 +1,7 @@
 import MusicPlayer from "@/components/MusicPlayer";
 import PlayAgain from "@/components/PlayAgain";
 import { authOptions } from "../api/auth/[...nextauth]/options";
-import { getServerSession } from "next-auth";
+import { getServerSession, Session } from "next-auth";
 import { AudioProviderProps, CurrentStream } from "@/types";
 
 async function AudioProvider({

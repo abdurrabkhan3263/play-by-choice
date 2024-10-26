@@ -53,7 +53,6 @@ function SpaceHeader({ streamList }: { streamList: SpaceStreamList }) {
             updatedSpace?.message ?? "Space name updated successfully",
         });
       }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       toast({
         title: "Error",
