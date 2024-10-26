@@ -6,6 +6,7 @@ import prismaClient from "@/lib/db";
 import { capitalize } from "lodash";
 import { refreshAccessToken } from "@/lib/action/spotify";
 import { refreshGAccessToken } from "@/lib/action/youtube";
+import { Provider as PrismaProvider } from "@prisma/client";
 
 enum Provider {
   Google = "google",
@@ -79,6 +80,7 @@ export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === "development",
   callbacks: {
     async jwt({ token, account, profile }) {
+      console.log({ account, profile });
       if (account && profile) {
         const user = await prismaClient.user.findFirst({
           where: {
@@ -98,12 +100,12 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (account?.expires_at) {
-        token.accessTokenExpires = Date.now() + account.expires_at * 1000;
+        token.accessTokenExpires = account.expires_at * 1000;
       }
 
       if (
         token.accessTokenExpires &&
-        Date.now() >= token.accessTokenExpires - 5 * 60 * 1000
+        Date.now() >= token.accessTokenExpires - 2 * 60 * 1000
       ) {
         if (token.provider === Provider.Spotify) {
           return refreshAccessToken(token);
@@ -150,12 +152,11 @@ export const authOptions: NextAuthOptions = {
         }
 
         if (!isUserExits) {
-          const provider = capitalize(account?.provider) as Provider;
           const createUser = await prismaClient.user.create({
             data: {
               name:
                 profile?.name ?? ((profile as any)?.display_name as Provider),
-              provider,
+              provider: capitalize(account?.provider) as PrismaProvider,
               email: profile?.email as string,
               image:
                 account?.provider === "google"
