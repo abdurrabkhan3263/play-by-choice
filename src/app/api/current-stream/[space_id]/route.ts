@@ -1,5 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 import prismaClient from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -8,52 +9,54 @@ export async function GET(
 ) {
   const { space_id } = params;
   try {
-    const result = await prismaClient.$transaction(async (tx) => {
-      const currentStream = await tx.currentStream.findFirst({
-        where: { spaceId: space_id },
-        include: {
-          stream: {
-            select: {
-              id: true,
-              title: true,
-              smallImg: true,
-              popularity: true,
-              url: true,
-              artists: true,
-              extractedId: true,
+    const result = await prismaClient.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const currentStream = await tx.currentStream.findFirst({
+          where: { spaceId: space_id },
+          include: {
+            stream: {
+              select: {
+                id: true,
+                title: true,
+                smallImg: true,
+                popularity: true,
+                url: true,
+                artists: true,
+                extractedId: true,
+              },
             },
-          },
-          space: {
-            select: {
-              createdBy: {
-                select: {
-                  id: true,
+            space: {
+              select: {
+                createdBy: {
+                  select: {
+                    id: true,
+                  },
                 },
               },
             },
           },
-        },
-      });
-      const findAllStream = await tx.stream.findMany({
-        where: { spaceId: space_id },
-      });
+        });
+        const findAllStream = await tx.stream.findMany({
+          where: { spaceId: space_id },
+        });
 
-      if (!currentStream) {
+        if (!currentStream) {
+          return {
+            status: "Not Found",
+            message: "No current stream found",
+            statusCode: 404,
+            isStreamAvailable: findAllStream.length > 0,
+          };
+        }
+
         return {
-          status: "Not Found",
-          message: "No current stream found",
-          statusCode: 404,
-          isStreamAvailable: findAllStream.length > 0,
+          status: "Success",
+          message: "Current stream found",
+          data: currentStream,
+          isStreamAvailable: true,
         };
       }
-
-      return {
-        status: "Success",
-        message: "Current stream found",
-        data: currentStream,
-        isStreamAvailable: true,
-      };
-    });
+    );
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
     return NextResponse.json(
@@ -88,67 +91,69 @@ export async function POST(
 
   try {
     // Use a transaction to ensure data consistency --> it is use to ensure that all the queries are executed successfully
-    const result = await prismaClient.$transaction(async (tx) => {
-      await tx.currentStream.deleteMany({
-        where: {
-          id: currentStream_id,
-          spaceId: space_id,
-        },
-      });
+    const result = await prismaClient.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        await tx.currentStream.deleteMany({
+          where: {
+            id: currentStream_id,
+            spaceId: space_id,
+          },
+        });
 
-      await tx.stream.update({
-        where: { id: streamId, spaceId: space_id },
-        data: { played: true, active: false },
-      });
+        await tx.stream.update({
+          where: { id: streamId, spaceId: space_id },
+          data: { played: true, active: false },
+        });
 
-      const nextStream = await tx.stream.findFirst({
-        where: { spaceId: space_id, played: false },
-        orderBy: { Upvote: { _count: "desc" } },
-      });
+        const nextStream = await tx.stream.findFirst({
+          where: { spaceId: space_id, played: false },
+          orderBy: { Upvote: { _count: "desc" } },
+        });
 
-      if (!nextStream) {
+        if (!nextStream) {
+          return {
+            status: "Success",
+            message: "No more streams available",
+            statusCode: 404,
+            isStreamAvailable: false,
+          };
+        }
+
+        const newCurrentStream = await tx.currentStream.create({
+          data: { streamId: nextStream.id, spaceId: space_id },
+          include: {
+            stream: {
+              select: {
+                id: true,
+                title: true,
+                smallImg: true,
+                popularity: true,
+                url: true,
+                artists: true,
+                extractedId: true,
+              },
+            },
+            space: {
+              select: {
+                createdBy: true,
+              },
+            },
+          },
+        });
+
+        await tx.stream.update({
+          where: { id: nextStream.id, spaceId: space_id },
+          data: { active: true },
+        });
+
         return {
           status: "Success",
-          message: "No more streams available",
-          statusCode: 404,
-          isStreamAvailable: false,
+          message: "Current stream updated",
+          data: newCurrentStream,
+          isStreamAvailable: true,
         };
       }
-
-      const newCurrentStream = await tx.currentStream.create({
-        data: { streamId: nextStream.id, spaceId: space_id },
-        include: {
-          stream: {
-            select: {
-              id: true,
-              title: true,
-              smallImg: true,
-              popularity: true,
-              url: true,
-              artists: true,
-              extractedId: true,
-            },
-          },
-          space: {
-            select: {
-              createdBy: true,
-            },
-          },
-        },
-      });
-
-      await tx.stream.update({
-        where: { id: nextStream.id, spaceId: space_id },
-        data: { active: true },
-      });
-
-      return {
-        status: "Success",
-        message: "Current stream updated",
-        data: newCurrentStream,
-        isStreamAvailable: true,
-      };
-    });
+    );
 
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
@@ -172,60 +177,62 @@ export async function PATCH(
   const { space_id } = params;
   const { allPlayed } = await req.json();
   try {
-    const result = await prismaClient.$transaction(async (tx) => {
-      if (allPlayed) {
-        await tx.stream.updateMany({
-          where: { spaceId: space_id },
-          data: { played: false },
+    const result = await prismaClient.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        if (allPlayed) {
+          await tx.stream.updateMany({
+            where: { spaceId: space_id },
+            data: { played: false },
+          });
+        }
+
+        const findStream = await tx.stream.findFirst({
+          where: { spaceId: space_id, played: false },
+          orderBy: { Upvote: { _count: "desc" } },
         });
-      }
 
-      const findStream = await tx.stream.findFirst({
-        where: { spaceId: space_id, played: false },
-        orderBy: { Upvote: { _count: "desc" } },
-      });
+        if (!findStream) {
+          return {
+            status: "Success",
+            message: "No more streams available",
+            isStreamAvailable: false,
+          };
+        }
+        const newCurrentStream = await tx.currentStream.create({
+          data: { streamId: findStream.id, spaceId: space_id },
+          include: {
+            stream: {
+              select: {
+                id: true,
+                title: true,
+                smallImg: true,
+                popularity: true,
+                url: true,
+                artists: true,
+                extractedId: true,
+              },
+            },
+            space: {
+              select: {
+                createdBy: true,
+              },
+            },
+          },
+        });
 
-      if (!findStream) {
+        await tx.stream.update({
+          where: { id: findStream.id, spaceId: space_id },
+          data: { active: true },
+        });
+
         return {
           status: "Success",
-          message: "No more streams available",
-          isStreamAvailable: false,
+          message: "Current stream updated",
+          data: newCurrentStream,
+          isStreamAvailable: true,
         };
       }
-      const newCurrentStream = await tx.currentStream.create({
-        data: { streamId: findStream.id, spaceId: space_id },
-        include: {
-          stream: {
-            select: {
-              id: true,
-              title: true,
-              smallImg: true,
-              popularity: true,
-              url: true,
-              artists: true,
-              extractedId: true,
-            },
-          },
-          space: {
-            select: {
-              createdBy: true,
-            },
-          },
-        },
-      });
-
-      await tx.stream.update({
-        where: { id: findStream.id, spaceId: space_id },
-        data: { active: true },
-      });
-
-      return {
-        status: "Success",
-        message: "Current stream updated",
-        data: newCurrentStream,
-        isStreamAvailable: true,
-      };
-    });
+    );
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
     return NextResponse.json(
