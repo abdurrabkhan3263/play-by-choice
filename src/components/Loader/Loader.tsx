@@ -14,8 +14,8 @@ function Loader() {
         </div>
       </div>
       <div className="player">
-        <div className="rect"></div>
         <div className="circ"></div>
+        <div className="rect"></div>
       </div>
     </div>
   );

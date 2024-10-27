@@ -1,5 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import prismaClient from "@/lib/db";
-import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
