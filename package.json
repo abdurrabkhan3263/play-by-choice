@@ -5,7 +5,7 @@
   "scripts": {
     "predeployment-check": "npm run build && npx tsc --noEmit && npx eslint . --max-warnings=0 && npx prisma generate",
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
