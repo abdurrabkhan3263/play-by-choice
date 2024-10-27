@@ -2,13 +2,12 @@
 
 import { useToast } from "@/hooks/use-toast";
 import { getStreamType } from "@/lib/utils";
-import { AddStreamBtnProps, CreateStreamType } from "@/types";
+import { AddStreamBtnProps, CreateStreamType, StreamType } from "@/types";
 import React from "react";
 import { Button } from "./ui/button";
 import { CreateStreamUrl } from "@/lib/zod";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
-import { StreamType as PrismaStreamType, StreamType } from "@prisma/client";
 import { getAlbum, getPlaylist, getTrack } from "@/lib/action/spotify";
 import { getVideoInfo } from "@/lib/action/youtube";
 const SONG_LIMIT = 100;
@@ -192,7 +191,7 @@ function AddStreamBtn({
           streamData = {
             itemType: "track",
             title: spotifyData?.name,
-            type: type as PrismaStreamType,
+            type: type as StreamType,
             extractedId: itemId,
             smallImg: spotifyData?.album?.images[2]?.url,
             bigImg: spotifyData?.album?.images[0]?.url,
@@ -265,7 +264,7 @@ function AddStreamBtn({
           streamData = {
             itemType: "album",
             title: albumData?.name,
-            type: type as PrismaStreamType,
+            type: type as StreamType,
             extractedId: itemId,
             smallImg: albumData?.images[2]?.url ?? albumData?.images[1]?.url,
             bigImg: albumData?.images[1]?.url ?? albumData?.images[0]?.url,

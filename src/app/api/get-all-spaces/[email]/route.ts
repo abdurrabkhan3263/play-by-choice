@@ -2,6 +2,7 @@ import prismaClient from "@/lib/db";
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 import { redirect } from "next/navigation";
+import { CurrentStream } from "@/types";
 
 export async function GET(
   req: NextRequest,
@@ -45,7 +46,7 @@ export async function GET(
     },
   });
 
-  const filterIds = allStreams.map((s) => s.spaceId);
+  const filterIds = allStreams.map((s: any) => s.spaceId);
 
   const allSpaces = await prismaClient.space.findMany({
     where: {

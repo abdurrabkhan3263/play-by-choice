@@ -4,7 +4,7 @@ import SpotifyProvider from "next-auth/providers/spotify";
 import prismaClient from "@/lib/db";
 import { refreshAccessToken } from "@/lib/action/spotify";
 import { refreshGAccessToken } from "@/lib/action/youtube";
-import { CredentialType } from "@prisma/client";
+import { CredentialType } from "@/types";
 
 export const authOptions: NextAuthOptions = {
   providers: [
