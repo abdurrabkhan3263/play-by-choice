@@ -8,8 +8,8 @@ export async function GET(
 ) {
   const { space_id } = params;
   try {
-    const result = await prismaClient.$transaction(async (prisma) => {
-      const currentStream = await prisma.currentStream.findFirst({
+    const result = await prismaClient.$transaction(async (tx) => {
+      const currentStream = await tx.currentStream.findFirst({
         where: { spaceId: space_id },
         include: {
           stream: {
@@ -34,7 +34,7 @@ export async function GET(
           },
         },
       });
-      const findAllStream = await prisma.stream.findMany({
+      const findAllStream = await tx.stream.findMany({
         where: { spaceId: space_id },
       });
 
