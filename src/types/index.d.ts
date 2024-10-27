@@ -21,7 +21,7 @@ declare type CreateStreamType = {
   smallImg: string;
   bigImg: string;
   createdAt: Date;
-  itemType?: "album" | "track" | "playlist";
+  itemType?: StreamItemType;
   type: StreamType;
   listSongs?: CreateStreamType[];
   artists?: string;
@@ -140,3 +140,4 @@ declare type AddStreamBtnProps = {
 
 declare type CredentialType = "spotify" | "google";
 declare type StreamType = "spotify" | "youtube";
+declare type StreamItemType = "track" | "album" | "playlist";

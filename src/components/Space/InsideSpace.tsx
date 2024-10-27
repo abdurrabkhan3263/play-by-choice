@@ -101,7 +101,7 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
       <div className="col-span-5 bg-gradient-to-br flex flex-col overflow-hidden gap-4 from-gray-800 to-gray-900 md:col-span-2 lg:col-span-3 xl:col-span-4 rounded-xl p-4">
         <div className="flex flex-col gap-6 flex-1 overflow-y-auto custom_scroll">
           <SpaceHeader streamList={streamList} />
-          <div className="flex lg:flex-col lg:flex-grow flex-shrink flex-row flex-wrap gap-6 flex-1 lg:overflow-y-auto custom_scroll">
+          <div className="flex lg:flex-grow flex-shrink flex-row flex-wrap gap-6 flex-1 lg:overflow-y-auto custom_scroll">
             {Array.isArray(listStream) &&
             status === "authenticated" &&
             listStream.length > 0 ? (
@@ -121,6 +121,7 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
                     role={role}
                     setStream={setListStream}
                     userId={data?.user.id}
+                    listStream={listStream}
                   />
                 );
               })

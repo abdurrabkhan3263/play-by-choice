@@ -109,7 +109,7 @@ function CreateSpace({
           <h2 className="text-xl font-semibold text-primary mb-2">
             Added Streams
           </h2>
-          <div className="max-h-[250px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+          <div className="max-h-[250px] overflow-y-auto pr-2 space-y-3 custom_scroll">
             {stream.length === 0 ? (
               <p className="text-lg text-gray-400 text-center">
                 No streams added
