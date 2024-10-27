@@ -1,7 +1,7 @@
 "use client";
 
 import { useToast } from "@/hooks/use-toast";
-import { getStreamType } from "@/lib/utils";
+import { getStreamType, getStreamTypeReturn } from "@/lib/utils";
 import { AddStreamBtnProps, CreateStreamType, StreamType } from "@/types";
 import React from "react";
 import { Button } from "./ui/button";
@@ -10,7 +10,7 @@ import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { getAlbum, getPlaylist, getTrack } from "@/lib/action/spotify";
 import { getVideoInfo } from "@/lib/action/youtube";
-const SONG_LIMIT = 100;
+const SONG_LIMIT = 50;
 
 function AddStreamBtn({
   streamUrl,
@@ -23,7 +23,6 @@ function AddStreamBtn({
   const { data, status } = useSession();
 
   async function CreateStream() {
-    // Check if the URL is valid using Zod and Check if the stream already exist and Check if the number of songs is not more than 100
     const typeChecking = CreateStreamUrl.safeParse(streamUrl);
 
     if (!typeChecking.success) {
@@ -32,18 +31,6 @@ function AddStreamBtn({
         description: typeChecking.error.errors[0].message ?? "Invalid URL",
         variant: "destructive",
       });
-      return;
-    }
-
-    const checkAlreadyExist = stream.some((s) => s.url === streamUrl);
-
-    if (checkAlreadyExist) {
-      toast({
-        title: "Error",
-        description: "Stream already exist",
-        variant: "destructive",
-      });
-      setStreamUrl("");
       return;
     }
 
@@ -67,14 +54,26 @@ function AddStreamBtn({
     // --> End
 
     // Get the stream type and the ID
-
-    const url = new URL(streamUrl);
-    const type = getStreamType(streamUrl);
+    const type: getStreamTypeReturn = getStreamType(streamUrl);
     let streamData: CreateStreamType = {} as CreateStreamType;
+
+    const checkAlreadyExist = stream.some((s) => s.extractedId === type.id);
+
+    console.log("Stream is:- ", stream);
+
+    if (checkAlreadyExist) {
+      toast({
+        title: "Error",
+        description: "Stream already exist",
+        variant: "destructive",
+      });
+      setStreamUrl("");
+      return;
+    }
 
     // Get the stream data based on the type
 
-    if (type === "youtube") {
+    if (type.platform === "youtube") {
       if (data?.user?.provider !== "google") {
         toast({
           title: "Error",
@@ -84,9 +83,7 @@ function AddStreamBtn({
         return;
       }
 
-      const ID = url.searchParams.get("v");
-
-      if (!ID) {
+      if (!type.id) {
         toast({
           title: "Error",
           description: "Invalid Youtube URL",
@@ -107,7 +104,7 @@ function AddStreamBtn({
       try {
         setLoading(true);
         const youtubeData = await getVideoInfo(
-          ID,
+          type.id,
           data?.user?.accessToken as string
         );
         if (!youtubeData || youtubeData?.error) {
@@ -123,8 +120,8 @@ function AddStreamBtn({
         streamData = {
           itemType: "track",
           title: dataSnippet?.title,
-          type: type,
-          extractedId: ID,
+          type: type.platform as StreamType,
+          extractedId: type.id,
           smallImg: dataSnippet?.thumbnails?.medium.url,
           bigImg: dataSnippet?.thumbnails?.high.url,
           createdAt: new Date(),
@@ -142,7 +139,7 @@ function AddStreamBtn({
         setStreamUrl("");
         setLoading(false);
       }
-    } else if (type === "spotify") {
+    } else if (type.platform === "spotify") {
       if (data?.user?.provider !== "spotify") {
         toast({
           title: "Error",
@@ -151,11 +148,8 @@ function AddStreamBtn({
         });
         return;
       }
-      const pathNameVar = url.pathname.split("/");
-      const itemId = pathNameVar[2];
-      const itemType = pathNameVar[1];
 
-      if (!itemId) {
+      if (!type.id) {
         toast({
           title: "Error",
           description: "Invalid Spotify URL",
@@ -167,8 +161,8 @@ function AddStreamBtn({
 
       try {
         setLoading(true);
-        if (itemType === "track") {
-          const spotifyData = await getTrack(itemId);
+        if (type.type === "track") {
+          const spotifyData = await getTrack(type.id);
 
           if (!spotifyData) {
             toast({
@@ -191,8 +185,8 @@ function AddStreamBtn({
           streamData = {
             itemType: "track",
             title: spotifyData?.name,
-            type: type as StreamType,
-            extractedId: itemId,
+            type: type.platform as StreamType,
+            extractedId: type.id,
             smallImg: spotifyData?.album?.images[2]?.url,
             bigImg: spotifyData?.album?.images[0]?.url,
             createdAt: new Date(),
@@ -203,13 +197,13 @@ function AddStreamBtn({
               .map((artist) => artist.name)
               .join(", "),
           };
-        } else if (itemType === "album" || itemType === "playlist") {
+        } else if (type.type === "album" || type.type === "playlist") {
           let albumData;
 
-          if (itemType === "album") {
-            albumData = await getAlbum(itemId);
-          } else if (itemType === "playlist") {
-            albumData = await getPlaylist(itemId);
+          if (type.type === "album") {
+            albumData = await getAlbum(type.id);
+          } else if (type.type === "playlist") {
+            albumData = await getPlaylist(type.id);
           }
 
           if (!albumData?.tracks?.items) {
@@ -241,7 +235,7 @@ function AddStreamBtn({
           const listSongs = (await Promise.all(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             albumData?.tracks?.items.map(async (item: any) => {
-              const ID = itemType === "album" ? item?.id : item.track.id;
+              const ID = type.type === "album" ? item?.id : item.track.id;
               const trackData = await getTrack(ID);
               return {
                 itemType: "track",
@@ -264,8 +258,8 @@ function AddStreamBtn({
           streamData = {
             itemType: "album",
             title: albumData?.name,
-            type: type as StreamType,
-            extractedId: itemId,
+            type: type.type as StreamType,
+            extractedId: type.id,
             smallImg: albumData?.images[2]?.url ?? albumData?.images[1]?.url,
             bigImg: albumData?.images[1]?.url ?? albumData?.images[0]?.url,
             createdAt: new Date(),

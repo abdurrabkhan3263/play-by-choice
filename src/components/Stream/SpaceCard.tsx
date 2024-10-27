@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React from "react";
+import React, { useEffect } from "react";
 import { Button } from "../ui/button";
 import { CurrentStream, StreamTypeApi } from "@/types";
 import { timeAgo } from "@/lib/utils";
@@ -35,12 +35,14 @@ function SpaceCard({
   role,
   setStream,
   userId,
+  listStream,
 }: {
   stream: StreamTypeApi;
   currentStream: CurrentStream;
   role: "Owner" | "Member" | "Creator";
   setStream: React.Dispatch<React.SetStateAction<StreamTypeApi[]>>;
   userId: string;
+  listStream: StreamTypeApi[];
 }) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
@@ -120,18 +122,6 @@ function SpaceCard({
   };
 
   const imageHostName = new URL(stream.bigImg)?.hostname;
-
-  // const shouldShowImage =
-  //   (stream?.type === "Youtube" &&
-  //     (!currentStream || currentStream?.streamId !== stream.id)) ||
-  //   deviceWidth > 786 ||
-  //   stream?.type === "Spotify";
-
-  // const isShowYoutubeStream =
-  //   stream.type === "Youtube" &&
-  //   currentStream &&
-  //   currentStream?.streamId === stream.id;
-  // && deviceWidth <= 786;
 
   return (
     <div className="relative w-full h-fit shrink-0 sm:w-[48%] md:w-[40%] lg:w-full p-4 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:shadow-xl bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 group">

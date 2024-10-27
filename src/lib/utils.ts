@@ -1,3 +1,4 @@
+import { StreamItemType, StreamType } from "@/types";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -5,14 +6,56 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function getStreamType(url: string) {
+export interface getStreamTypeReturn {
+  platform: StreamType;
+  type?: StreamItemType;
+  id: string;
+}
+
+export function getStreamType(url: string): getStreamTypeReturn | any {
   const spotifyRegex = /spotify/i;
   const youtubeRegex = /youtube/i;
+  const youtubePhoneRegex = /youtu\.be/i;
+  const streamUrl = new URL(url);
 
   if (spotifyRegex.test(url)) {
-    return "spotify";
+    try {
+      url = url.trim();
+
+      const match = url.match(
+        /spotify\.com\/(track|album|playlist)\/([A-Za-z0-9]+)/
+      );
+
+      if (match) {
+        return {
+          platform: "spotify",
+          type: match[1] as StreamItemType,
+          id: match[2],
+        };
+      }
+
+      return {
+        error: "Invalid Spotify URL format",
+      };
+    } catch (error) {
+      return {
+        error: "Failed to process URL",
+        details: error instanceof Error ? error.message : "Unknown error",
+      };
+    }
   } else if (youtubeRegex.test(url)) {
-    return "youtube";
+    const extractedId = streamUrl.searchParams.get("v");
+    return {
+      platform: "youtube",
+      id: extractedId ?? "",
+    };
+  } else if (youtubePhoneRegex.test(url)) {
+    const match = url?.match(/youtu\.be\/([A-Za-z0-9-_]+)/);
+    const extractedId = match ? match[1] : null;
+    return {
+      platform: "youtube",
+      id: extractedId ?? "",
+    };
   }
   return "Unknown";
 }

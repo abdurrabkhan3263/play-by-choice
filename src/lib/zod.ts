@@ -3,7 +3,7 @@ import { z } from "zod";
 export const CreateStreamUrl = z
   .string()
   .regex(
-    /^(https?:\/\/(open\.spotify\.com\/(track|album|playlist)\/[A-Za-z0-9]+|www\.youtube\.com\/watch\?v=[A-Za-z0-9-_]+(&.*)?)$)/,
+    /^(https?:\/\/(open\.spotify\.com\/(track|album|playlist)\/[A-Za-z0-9]+(\?si=[A-Za-z0-9-_]+)?|(www|m)\.youtube\.com\/watch\?v=[A-Za-z0-9-_]+(&.*)?|youtu\.be\/[A-Za-z0-9-_]+(\?si=[A-Za-z0-9]+)?)$)/,
     {
       message: "URL must be from YouTube or Spotify",
     }

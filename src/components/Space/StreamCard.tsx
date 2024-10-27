@@ -100,7 +100,7 @@ function StreamCard({
           )}
         </div>
         {isExpanded && listSongs && (
-          <ScrollArea className="h-64 mt-4 pr-4">
+          <ScrollArea className="h-64 mt-4">
             {listSongs.map((song) => (
               <div
                 key={song.extractedId}

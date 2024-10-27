@@ -124,13 +124,11 @@ export const authOptions: NextAuthOptions = {
     },
     async signIn({ account, profile }) {
       try {
-        console.log({ account, profile });
         const isUserExits = await prismaClient.user.findFirst({
           where: {
             email: profile?.email,
           },
         });
-        console.log("isUserExits", isUserExits);
         if (
           account?.provider === "spotify" &&
           (profile as any)?.product !== "premium"
