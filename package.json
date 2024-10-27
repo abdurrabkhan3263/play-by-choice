@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predeployment-check": "npm run build && npx tsc --noEmit && npx eslint . --max-warnings=0 && npx prisma generate",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

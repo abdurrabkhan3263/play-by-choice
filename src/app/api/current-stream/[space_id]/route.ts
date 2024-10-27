@@ -1,4 +1,5 @@
 import prismaClient from "@/lib/db";
+import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -87,20 +88,20 @@ export async function POST(
 
   try {
     // Use a transaction to ensure data consistency --> it is use to ensure that all the queries are executed successfully
-    const result = await prismaClient.$transaction(async (prisma) => {
-      await prisma.currentStream.deleteMany({
+    const result = await prismaClient.$transaction(async (tx) => {
+      await tx.currentStream.deleteMany({
         where: {
           id: currentStream_id,
           spaceId: space_id,
         },
       });
 
-      await prisma.stream.update({
+      await tx.stream.update({
         where: { id: streamId, spaceId: space_id },
         data: { played: true, active: false },
       });
 
-      const nextStream = await prisma.stream.findFirst({
+      const nextStream = await tx.stream.findFirst({
         where: { spaceId: space_id, played: false },
         orderBy: { Upvote: { _count: "desc" } },
       });
@@ -114,7 +115,7 @@ export async function POST(
         };
       }
 
-      const newCurrentStream = await prisma.currentStream.create({
+      const newCurrentStream = await tx.currentStream.create({
         data: { streamId: nextStream.id, spaceId: space_id },
         include: {
           stream: {
@@ -136,7 +137,7 @@ export async function POST(
         },
       });
 
-      await prisma.stream.update({
+      await tx.stream.update({
         where: { id: nextStream.id, spaceId: space_id },
         data: { active: true },
       });
@@ -171,15 +172,15 @@ export async function PATCH(
   const { space_id } = params;
   const { allPlayed } = await req.json();
   try {
-    const result = await prismaClient.$transaction(async (prisma) => {
+    const result = await prismaClient.$transaction(async (tx) => {
       if (allPlayed) {
-        await prisma.stream.updateMany({
+        await tx.stream.updateMany({
           where: { spaceId: space_id },
           data: { played: false },
         });
       }
 
-      const findStream = await prisma.stream.findFirst({
+      const findStream = await tx.stream.findFirst({
         where: { spaceId: space_id, played: false },
         orderBy: { Upvote: { _count: "desc" } },
       });
@@ -191,7 +192,7 @@ export async function PATCH(
           isStreamAvailable: false,
         };
       }
-      const newCurrentStream = await prisma.currentStream.create({
+      const newCurrentStream = await tx.currentStream.create({
         data: { streamId: findStream.id, spaceId: space_id },
         include: {
           stream: {
@@ -213,7 +214,7 @@ export async function PATCH(
         },
       });
 
-      await prisma.stream.update({
+      await tx.stream.update({
         where: { id: findStream.id, spaceId: space_id },
         data: { active: true },
       });
