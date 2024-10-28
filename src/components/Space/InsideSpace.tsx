@@ -21,6 +21,7 @@ import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import Image from "next/image";
 import Loader from "../Loader/Loader";
+import { USER_LIMIT } from "@/lib/constants";
 
 const InsideSpace: React.FC<InsideSpaceProps> = ({
   streamList,
@@ -63,6 +64,33 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
 
       if (isListSong.final) {
         try {
+          // Check the number of users
+          const userCounts = listStream.reduce(
+            (acc: Record<string, number>, current) => {
+              const userId: string = current?.userId ?? "unknown";
+              acc[userId] = (acc[userId] ?? 0) + 1;
+              return acc;
+            },
+            {}
+          );
+
+          if (
+            addedStream[0]?.itemType !== "track" &&
+            data?.user?.id &&
+            addedStream[0]?.listSongs
+          ) {
+            const isExeeded =
+              userCounts[data.user.id] + addedStream[0]?.listSongs?.length >=
+              USER_LIMIT;
+            if (isExeeded) {
+              toast({
+                title: "Error",
+                description: "User limit exceeded",
+                variant: "destructive",
+              });
+              return;
+            }
+          }
           const newStream = await updateStream({
             spaceId,
             stream: addedStream as CreateStreamType[],
@@ -99,9 +127,9 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
   return (
     <>
       <div className="col-span-5 bg-gradient-to-br flex flex-col overflow-hidden gap-4 from-gray-800 to-gray-900 md:col-span-2 lg:col-span-3 xl:col-span-4 rounded-xl p-4">
-        <div className="flex flex-col gap-6 flex-1 overflow-y-auto custom_scroll">
+        <div className="flex flex-col gap-6 overflow-y-auto custom_scroll">
           <SpaceHeader streamList={streamList} />
-          <div className="flex lg:flex-grow flex-shrink flex-row flex-wrap gap-6 flex-1 lg:overflow-y-auto custom_scroll">
+          <div className="flex lg:flex-grow flex-shrink flex-row flex-wrap gap-6 lg:overflow-y-auto custom_scroll">
             {Array.isArray(listStream) &&
             status === "authenticated" &&
             listStream.length > 0 ? (
