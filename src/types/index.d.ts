@@ -122,6 +122,7 @@ declare type AudioProviderProps = {
   isAllStreamPlayed: boolean;
   type: StreamType;
   currentStream: FetchCurrentStream;
+  role: "OWNER" | "MEMBER";
 };
 
 declare type InsideSpaceProps = {
@@ -129,6 +130,7 @@ declare type InsideSpaceProps = {
   spaceId: string;
   spaceType: StreamType;
   currentStream: FetchCurrentStream;
+  role: "OWNER" | "MEMBER";
 };
 
 declare type AddStreamBtnProps = {

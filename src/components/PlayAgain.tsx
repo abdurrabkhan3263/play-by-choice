@@ -8,14 +8,18 @@ import { useToast } from "@/hooks/use-toast";
 function PlayAgain({
   spaceId,
   playAgain,
+  role,
 }: {
   spaceId: string;
   playAgain: boolean;
+  role: "OWNER" | "MEMBER";
 }) {
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
   const handlePlayAgain = async () => {
+    if (role !== "OWNER") return;
+
     setSubmitting(true);
     try {
       await playAgainStream({
@@ -38,7 +42,10 @@ function PlayAgain({
       className="music_player"
       style={{ display: "flex", justifyContent: "center" }}
     >
-      <Button onClick={handlePlayAgain} disabled={submitting}>
+      <Button
+        onClick={handlePlayAgain}
+        disabled={submitting || role !== "OWNER"}
+      >
         Play {playAgain && "again"}
       </Button>
     </div>

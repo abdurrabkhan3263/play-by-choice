@@ -22,104 +22,63 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import {
-  deleteStream as deleteStreamApi,
-  deleteUpVoteStream,
-  upVoteStream,
-} from "@/lib/action/stream.action";
 import { useToast } from "@/hooks/use-toast";
+
+interface Props {
+  stream: StreamTypeApi;
+  currentStream: CurrentStream;
+  role: "Owner" | "Member" | "Creator";
+  userId: string;
+  handleDelete: ({
+    streamId,
+    spaceId,
+    setIsDeleting,
+    setIsOpen,
+  }: {
+    streamId: string;
+    spaceId: string;
+    setIsDeleting: React.Dispatch<React.SetStateAction<boolean>>;
+    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  }) => void;
+  handleUpVote: ({
+    stream,
+    streamId,
+    setIsUpVoted,
+    setUpvoting,
+  }: {
+    stream: StreamTypeApi;
+    streamId: string;
+    setIsUpVoted: React.Dispatch<React.SetStateAction<boolean>>;
+    setUpvoting: React.Dispatch<React.SetStateAction<boolean>>;
+  }) => void;
+  removeUpvote: ({
+    stream,
+    streamId,
+    setUpvoting,
+    setIsUpVoted,
+  }: {
+    stream: StreamTypeApi;
+    streamId: string;
+    setIsUpVoted: React.Dispatch<React.SetStateAction<boolean>>;
+    setUpvoting: React.Dispatch<React.SetStateAction<boolean>>;
+  }) => void;
+}
 
 function SpaceCard({
   stream,
   currentStream,
   role,
-  setStream,
   userId,
-  listStream,
-}: {
-  stream: StreamTypeApi;
-  currentStream: CurrentStream;
-  role: "Owner" | "Member" | "Creator";
-  setStream: React.Dispatch<React.SetStateAction<StreamTypeApi[]>>;
-  userId: string;
-  listStream: StreamTypeApi[];
-}) {
+  handleDelete,
+  handleUpVote,
+  removeUpvote,
+}: Props) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [upVoting, setUpvoting] = React.useState(false);
   const [isUpVoted, setIsUpVoted] = React.useState(
     stream.Upvote.some((upvote) => upvote.userId === userId)
   );
-  // const [deviceWidth, setDeviceWidth] = React.useState(window.innerWidth);
-  const { toast } = useToast();
-
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    try {
-      const res = await deleteStreamApi({
-        streamId: stream.id,
-        spaceId: stream.spaceId,
-      });
-      if (res.status === "Success") {
-        setStream((prev) => prev.filter((item) => item.id !== stream.id));
-        setIsDeleting(false);
-        setIsOpen(false);
-      }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleUpVote = async () => {
-    setUpvoting(true);
-    try {
-      const res = await upVoteStream({ streamId: stream.id });
-      if (res.status === "Success") {
-        stream.Upvote.push(res.data);
-        setIsUpVoted(true);
-        toast({
-          title: "Success",
-          description: "Upvoted stream",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to upvote stream",
-        variant: "destructive",
-      });
-    } finally {
-      setUpvoting(false);
-    }
-  };
-
-  const removeUpvote = async () => {
-    setUpvoting(true);
-    try {
-      const res = await deleteUpVoteStream({ streamId: stream.id });
-      if (res.status === "Success") {
-        stream.Upvote = stream.Upvote.filter(
-          (upvote) => upvote.userId !== userId
-        );
-        setIsUpVoted(false);
-        toast({
-          title: "Success",
-          description: "Removed upvote",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to remove upvote",
-        variant: "destructive",
-      });
-    } finally {
-      setUpvoting(false);
-    }
-  };
 
   const imageHostName = new URL(stream.bigImg)?.hostname;
 
@@ -168,7 +127,14 @@ function SpaceCard({
                 variant="outline"
                 size="sm"
                 className="bg-blue-600 hover:bg-blue-700 text-white border-none transition-all duration-300 ease-in-out transform hover:scale-105"
-                onClick={removeUpvote}
+                onClick={() =>
+                  removeUpvote({
+                    stream,
+                    streamId: stream.id,
+                    setUpvoting,
+                    setIsUpVoted,
+                  })
+                }
                 disabled={upVoting}
               >
                 {upVoting ? (
@@ -190,7 +156,14 @@ function SpaceCard({
                 variant="outline"
                 size="sm"
                 className="bg-blue-600 hover:bg-blue-700 text-white border-none transition-all duration-300 ease-in-out transform hover:scale-105"
-                onClick={handleUpVote}
+                onClick={() =>
+                  handleUpVote({
+                    stream,
+                    streamId: stream.id,
+                    setIsUpVoted,
+                    setUpvoting,
+                  })
+                }
                 disabled={upVoting}
               >
                 {upVoting ? (
@@ -247,7 +220,14 @@ function SpaceCard({
                   <Button
                     type="button"
                     variant="destructive"
-                    onClick={handleDelete}
+                    onClick={() =>
+                      handleDelete({
+                        setIsDeleting,
+                        setIsOpen,
+                        streamId: stream.id,
+                        spaceId: stream.spaceId,
+                      })
+                    }
                     className="bg-red-600 hover:bg-red-700 text-white transition-colors duration-300"
                     disabled={isDeleting}
                   >

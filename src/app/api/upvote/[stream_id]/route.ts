@@ -48,7 +48,8 @@ export async function POST(
     return NextResponse.json(
       {
         status: "Error",
-        message: error instanceof Error ? error : "Failed to upvote stream",
+        message:
+          error instanceof Error ? error?.message : "Failed to upvote stream",
       },
       { status: 500 }
     );
