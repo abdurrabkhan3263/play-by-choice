@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import {
   CreateStreamType,
   CurrentStream,
   InsideSpaceProps,
   StreamTypeApi,
+  toggleUpvote,
 } from "@/types";
 import StreamCard from "../Stream/SpaceCard";
 import { Input } from "../ui/input";
@@ -14,9 +15,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useSession } from "next-auth/react";
 import {
   deleteStream,
-  deleteUpVoteStream,
+  toggleUpVote,
   updateStream,
-  upVoteStream,
 } from "@/lib/action/stream.action";
 import SpaceHeader from "./SpaceHeader";
 import YoutubePlayer from "../YoutubePlayer";
@@ -28,6 +28,7 @@ import Image from "next/image";
 import Loader from "../Loader/Loader";
 import { USER_LIMIT } from "@/lib/constants";
 import { sortStream } from "@/lib/utils";
+import { debounce } from "lodash";
 
 const InsideSpace: React.FC<InsideSpaceProps> = ({
   streamList,
@@ -164,84 +165,57 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
     }
   };
 
-  const handleUpVote = async ({
-    stream,
-    streamId,
-    setIsUpVoted,
-    setUpvoting,
-  }: {
-    stream: StreamTypeApi;
-    streamId: string;
-    setIsUpVoted: React.Dispatch<React.SetStateAction<boolean>>;
-    setUpvoting: React.Dispatch<React.SetStateAction<boolean>>;
-  }) => {
-    setUpvoting(true);
-    try {
-      const res = await upVoteStream({ streamId });
-      if (res.status === "Success") {
-        setIsUpVoted(true);
-        stream.Upvote.push(res.data);
-        toast({
-          title: "Success",
-          description: "Upvoted stream",
-        });
-        setListStream(sortStream(listStream));
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to upvote stream",
-        variant: "destructive",
-      });
-    } finally {
-      setUpvoting(false);
-    }
-  };
+  const handleUpVoteDebounce = useCallback(
+    debounce(
+      async ({
+        stream,
+        streamId,
+        isUpVoted,
+        setIsUpVoted,
+        setUpvoting,
+      }: toggleUpvote) => {
+        try {
+          setUpvoting(true);
+          const res = await toggleUpVote({ streamId, isUpVoted });
+          if (res.status === "Success") {
+            if (!isUpVoted) {
+              stream.Upvote = stream.Upvote.filter(
+                (upvote) => upvote.userId !== data?.user.id
+              );
+            } else {
+              stream.Upvote.push(res?.data);
+            }
 
-  const removeUpvote = async ({
-    stream,
-    streamId,
-    setUpvoting,
-    setIsUpVoted,
-  }: {
-    stream: StreamTypeApi;
-    streamId: string;
-    setIsUpVoted: React.Dispatch<React.SetStateAction<boolean>>;
-    setUpvoting: React.Dispatch<React.SetStateAction<boolean>>;
-  }) => {
-    setUpvoting(true);
-    try {
-      const res = await deleteUpVoteStream({ streamId: streamId });
-      if (res.status === "Success") {
-        stream.Upvote = stream.Upvote.filter(
-          (upvote) => upvote.userId !== data?.user.id
-        );
-        setIsUpVoted(false);
-        toast({
-          title: "Success",
-          description: "Removed upvote",
-        });
-        setListStream(sortStream(listStream));
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to remove upvote",
-        variant: "destructive",
-      });
-    } finally {
-      setUpvoting(false);
-    }
-  };
+            toast({
+              title: "Success",
+              description: res?.message ?? "Upvoted stream successfully",
+            });
+            setListStream(sortStream(listStream));
+          }
+        } catch (error) {
+          toast({
+            title: "Error",
+            description:
+              error instanceof Error
+                ? error.message
+                : "Failed to upvote stream",
+            variant: "destructive",
+          });
+        } finally {
+          setUpvoting(false);
+        }
+      },
+      500
+    ),
+    [data, listStream, toast]
+  );
 
   return (
     <>
       <div className="col-span-5 bg-gradient-to-br flex flex-col overflow-hidden gap-4 from-gray-800 to-gray-900 md:col-span-2 lg:col-span-3 xl:col-span-4 rounded-xl p-4">
-        <div className="flex flex-col gap-6 overflow-y-auto custom_scroll">
+        <div className="flex flex-col gap-6 overflow-y-auto h-full custom_scroll">
           <SpaceHeader streamList={streamList} />
-          <div className="flex lg:flex-grow flex-shrink flex-row flex-wrap gap-6 lg:overflow-y-auto custom_scroll">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-1 gap-4 custom_scroll">
             {Array.isArray(listStream) &&
             status === "authenticated" &&
             listStream.length > 0 ? (
@@ -260,8 +234,7 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
                     role={role}
                     userId={data?.user.id}
                     handleDelete={handleDelete}
-                    handleUpVote={handleUpVote}
-                    removeUpvote={removeUpvote}
+                    toggleUpvote={handleUpVoteDebounce}
                   />
                 );
               })

@@ -78,7 +78,7 @@ function YoutubePlayer({
   }, []);
   return (
     <>
-      <div className="aspect-video mt-4 rounded-md overflow-hidden">
+      <div className="aspect-video mt-4 max-w-96 rounded-md overflow-hidden">
         {role === "OWNER" ? (
           <div id="player"></div>
         ) : (

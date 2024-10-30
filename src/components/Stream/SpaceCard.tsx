@@ -3,14 +3,19 @@
 import Image from "next/image";
 import React, { useEffect } from "react";
 import { Button } from "../ui/button";
-import { CurrentStream, StreamTypeApi } from "@/types";
+import {
+  CurrentStream,
+  handleDelete,
+  StreamTypeApi,
+  toggleUpvote,
+} from "@/types";
 import { timeAgo } from "@/lib/utils";
 import {
   CheckCircleIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
   Loader2,
   Music,
-  ThumbsDown,
-  ThumbsUp,
   Trash2,
 } from "lucide-react";
 import {
@@ -22,7 +27,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import { useToast } from "@/hooks/use-toast";
 
 interface Props {
   stream: StreamTypeApi;
@@ -34,34 +38,15 @@ interface Props {
     spaceId,
     setIsDeleting,
     setIsOpen,
-  }: {
-    streamId: string;
-    spaceId: string;
-    setIsDeleting: React.Dispatch<React.SetStateAction<boolean>>;
-    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  }) => void;
-  handleUpVote: ({
+  }: handleDelete) => void;
+
+  toggleUpvote: ({
     stream,
     streamId,
+    isUpVoted,
     setIsUpVoted,
     setUpvoting,
-  }: {
-    stream: StreamTypeApi;
-    streamId: string;
-    setIsUpVoted: React.Dispatch<React.SetStateAction<boolean>>;
-    setUpvoting: React.Dispatch<React.SetStateAction<boolean>>;
-  }) => void;
-  removeUpvote: ({
-    stream,
-    streamId,
-    setUpvoting,
-    setIsUpVoted,
-  }: {
-    stream: StreamTypeApi;
-    streamId: string;
-    setIsUpVoted: React.Dispatch<React.SetStateAction<boolean>>;
-    setUpvoting: React.Dispatch<React.SetStateAction<boolean>>;
-  }) => void;
+  }: toggleUpvote) => void;
 }
 
 function SpaceCard({
@@ -70,8 +55,7 @@ function SpaceCard({
   role,
   userId,
   handleDelete,
-  handleUpVote,
-  removeUpvote,
+  toggleUpvote,
 }: Props) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [isDeleting, setIsDeleting] = React.useState(false);
@@ -83,12 +67,12 @@ function SpaceCard({
   const imageHostName = new URL(stream.bigImg)?.hostname;
 
   return (
-    <div className="relative w-full h-fit shrink-0 sm:w-[48%] md:w-[40%] lg:w-full p-4 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:shadow-xl bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 group">
-      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+    <div className="relative w-full h-fit p-4 rounded-xl shadow-lg transition-all duration-300 ease-in-out hover:shadow-xl bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 group">
+      <div className="flex flex-col xl:flex-row gap-4 lg:gap-6">
         <div
           className={`relative ${
             imageHostName === "i.ytimg.com" ? "aspect-video" : "aspect-square"
-          } w-full lg:w-28 overflow-hidden rounded-lg bg-gray-700 shadow-inner group-hover:shadow-lg transition-all duration-300`}
+          } w-full xl:w-28 overflow-hidden rounded-lg bg-gray-700 shadow-inner group-hover:shadow-lg transition-all duration-300`}
         >
           <Image
             src={stream.bigImg || "/No_Image_Available.jpg"}
@@ -122,65 +106,39 @@ function SpaceCard({
             </p>
           </div>
           <div className="flex items-center gap-4 mt-4">
-            {isUpVoted ? (
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-white border-none transition-all duration-300 ease-in-out transform hover:scale-105"
-                onClick={() =>
-                  removeUpvote({
-                    stream,
-                    streamId: stream.id,
-                    setUpvoting,
-                    setIsUpVoted,
-                  })
-                }
-                disabled={upVoting}
-              >
-                {upVoting ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <ThumbsDown className="mr-2 h-4 w-4" />
-                    Upvote
-                  </>
-                )}
-                {stream.Upvote.length > 0 && (
-                  <span className="ml-2 font-semibold">
-                    {stream.Upvote.length}
-                  </span>
-                )}
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-white border-none transition-all duration-300 ease-in-out transform hover:scale-105"
-                onClick={() =>
-                  handleUpVote({
-                    stream,
-                    streamId: stream.id,
-                    setIsUpVoted,
-                    setUpvoting,
-                  })
-                }
-                disabled={upVoting}
-              >
-                {upVoting ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <ThumbsUp className="mr-2 h-4 w-4" />
-                    Upvote
-                  </>
-                )}
-                {stream.Upvote.length > 0 && (
-                  <span className="ml-2 font-semibold">
-                    {stream.Upvote.length}
-                  </span>
-                )}
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700 text-white border-none transition-all duration-300 ease-in-out transform hover:scale-105"
+              onClick={() => {
+                setIsUpVoted((prev) => !prev);
+                toggleUpvote({
+                  stream,
+                  streamId: stream.id,
+                  isUpVoted: !isUpVoted,
+                  setIsUpVoted,
+                  setUpvoting,
+                });
+              }}
+              disabled={upVoting}
+            >
+              {upVoting ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <>
+                  {isUpVoted ? (
+                    <ChevronDownIcon className="h-5 w-5" />
+                  ) : (
+                    <ChevronUpIcon className="h-5 w-5" />
+                  )}
+                </>
+              )}
+              {stream.Upvote.length > 0 && (
+                <span className="ml-2 font-semibold">
+                  {stream.Upvote.length}
+                </span>
+              )}
+            </Button>
           </div>
         </div>
       </div>
