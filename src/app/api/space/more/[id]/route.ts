@@ -1,5 +1,6 @@
 import prismaClient from "@/lib/db";
-import { CreateStreamType, CurrentStream } from "@/types";
+import { sortStream } from "@/lib/utils";
+import { CreateStreamType, CurrentStream, StreamTypeApi } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(
@@ -279,9 +280,7 @@ export async function GET(
             Upvote: true,
           },
           orderBy: {
-            Upvote: {
-              _count: "desc",
-            },
+            active: "desc",
           },
         },
       },
@@ -298,11 +297,20 @@ export async function GET(
       );
     }
 
+    let sortedStream = [];
+
+    if (space?.Stream) {
+      sortedStream = sortStream(space.Stream);
+    }
+
     // Returning the space details
     return NextResponse.json(
       {
         status: "Success",
-        data: space,
+        data: {
+          ...space,
+          Stream: sortedStream,
+        },
       },
       { status: 200 }
     );

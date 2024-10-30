@@ -27,6 +27,7 @@ import { Button } from "../ui/button";
 import Image from "next/image";
 import Loader from "../Loader/Loader";
 import { USER_LIMIT } from "@/lib/constants";
+import { sortStream } from "@/lib/utils";
 
 const InsideSpace: React.FC<InsideSpaceProps> = ({
   streamList,
@@ -178,13 +179,13 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
     try {
       const res = await upVoteStream({ streamId });
       if (res.status === "Success") {
-        stream.Upvote.push(res.data);
         setIsUpVoted(true);
+        stream.Upvote.push(res.data);
         toast({
           title: "Success",
           description: "Upvoted stream",
         });
-        listStream.sort((a, b) => b.Upvote.length - a.Upvote.length);
+        setListStream(sortStream(listStream));
       }
     } catch (error) {
       toast({
@@ -221,7 +222,7 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
           title: "Success",
           description: "Removed upvote",
         });
-        listStream.sort((a, b) => b.Upvote.length - a.Upvote.length);
+        setListStream(sortStream(listStream));
       }
     } catch (error) {
       toast({

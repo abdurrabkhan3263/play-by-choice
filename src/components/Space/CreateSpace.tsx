@@ -54,8 +54,6 @@ function CreateSpace({
       return acc + count;
     }, 0);
 
-    console.log("totalNumberOfStream", totalNumberOfStream);
-
     if (totalNumberOfStream > USER_LIMIT) {
       toast({
         title: "Error",
