@@ -1,4 +1,4 @@
-import { StreamItemType, StreamType } from "@/types";
+import { StreamItemType, StreamType, StreamTypeApi } from "@/types";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -97,3 +97,19 @@ export function dateFormat(data: Date) {
   });
   return formatedDate;
 }
+
+export const sortStream = (listStream: any[]) => {
+  if (!listStream || listStream.length === 0) return [];
+
+  const result = [...listStream];
+  const priorityIndex = listStream[0].active ? 0 : -1;
+
+  if (priorityIndex !== -1) {
+    const priorityItem = result.splice(priorityIndex, 1)[0];
+    result.sort((a, b) => b.Upvote.length - a.Upvote.length);
+    result.unshift(priorityItem);
+  } else {
+    result.sort((a, b) => b.Upvote.length - a.Upvote.length);
+  }
+  return result;
+};

@@ -122,6 +122,7 @@ declare type AudioProviderProps = {
   isAllStreamPlayed: boolean;
   type: StreamType;
   currentStream: FetchCurrentStream;
+  role: "OWNER" | "MEMBER";
 };
 
 declare type InsideSpaceProps = {
@@ -129,6 +130,7 @@ declare type InsideSpaceProps = {
   spaceId: string;
   spaceType: StreamType;
   currentStream: FetchCurrentStream;
+  role: "OWNER" | "MEMBER";
 };
 
 declare type AddStreamBtnProps = {
@@ -136,6 +138,21 @@ declare type AddStreamBtnProps = {
   setStream: React.Dispatch<React.SetStateAction<CreateStreamType[]>>;
   setStreamUrl: React.Dispatch<React.SetStateAction<string>>;
   streamUrl: string;
+};
+
+declare type toggleUpvote = {
+  stream: StreamTypeApi;
+  streamId: string;
+  isUpVoted: boolean;
+  setIsUpVoted: React.Dispatch<React.SetStateAction<boolean>>;
+  setUpvoting: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+declare type handleDelete = {
+  streamId: string;
+  spaceId: string;
+  setIsDeleting: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 declare type CredentialType = "spotify" | "google";

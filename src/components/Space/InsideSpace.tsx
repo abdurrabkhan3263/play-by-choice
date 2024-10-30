@@ -1,18 +1,23 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import {
   CreateStreamType,
   CurrentStream,
   InsideSpaceProps,
   StreamTypeApi,
+  toggleUpvote,
 } from "@/types";
 import StreamCard from "../Stream/SpaceCard";
 import { Input } from "../ui/input";
 import AddStreamBtn from "../AddStreamBtn";
 import { useToast } from "@/hooks/use-toast";
 import { useSession } from "next-auth/react";
-import { updateStream } from "@/lib/action/stream.action";
+import {
+  deleteStream,
+  toggleUpVote,
+  updateStream,
+} from "@/lib/action/stream.action";
 import SpaceHeader from "./SpaceHeader";
 import YoutubePlayer from "../YoutubePlayer";
 import { ScrollArea } from "../ui/scroll-area";
@@ -21,12 +26,16 @@ import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import Image from "next/image";
 import Loader from "../Loader/Loader";
+import { USER_LIMIT } from "@/lib/constants";
+import { sortStream } from "@/lib/utils";
+import { debounce } from "lodash";
 
 const InsideSpace: React.FC<InsideSpaceProps> = ({
   streamList,
   spaceId,
   spaceType,
   currentStream,
+  role,
 }) => {
   const [listStream, setListStream] = React.useState<StreamTypeApi[]>(
     streamList.Stream
@@ -63,6 +72,33 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
 
       if (isListSong.final) {
         try {
+          // Check the number of users
+          const userCounts = listStream.reduce(
+            (acc: Record<string, number>, current) => {
+              const userId: string = current?.userId ?? "unknown";
+              acc[userId] = (acc[userId] ?? 0) + 1;
+              return acc;
+            },
+            {}
+          );
+
+          if (
+            addedStream[0]?.itemType !== "track" &&
+            data?.user?.id &&
+            addedStream[0]?.listSongs
+          ) {
+            const isExeeded =
+              userCounts[data.user.id] + addedStream[0]?.listSongs?.length >=
+              USER_LIMIT;
+            if (isExeeded) {
+              toast({
+                title: "Error",
+                description: "User limit exceeded",
+                variant: "destructive",
+              });
+              return;
+            }
+          }
           const newStream = await updateStream({
             spaceId,
             stream: addedStream as CreateStreamType[],
@@ -96,12 +132,90 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
     }
   }, [addedStream, isListSong, spaceId, toast]);
 
+  const stream = listStream.find(
+    (stream) => stream.id === currentStream.data?.streamId
+  );
+
+  // All function and state for upvote and downvote and delete stream
+  const handleDelete = async ({
+    streamId,
+    spaceId,
+    setIsDeleting,
+    setIsOpen,
+  }: {
+    streamId: string;
+    spaceId: string;
+    setIsDeleting: React.Dispatch<React.SetStateAction<boolean>>;
+    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  }) => {
+    setIsDeleting(true);
+    try {
+      const res = await deleteStream({
+        streamId,
+        spaceId,
+      });
+      if (res.status === "Success") {
+        setListStream((prev) => prev.filter((item) => item.id !== streamId));
+        setIsDeleting(false);
+        setIsOpen(false);
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleUpVoteDebounce = useCallback(
+    debounce(
+      async ({
+        stream,
+        streamId,
+        isUpVoted,
+        setIsUpVoted,
+        setUpvoting,
+      }: toggleUpvote) => {
+        try {
+          setUpvoting(true);
+          const res = await toggleUpVote({ streamId, isUpVoted });
+          if (res.status === "Success") {
+            if (!isUpVoted) {
+              stream.Upvote = stream.Upvote.filter(
+                (upvote) => upvote.userId !== data?.user.id
+              );
+            } else {
+              stream.Upvote.push(res?.data);
+            }
+
+            toast({
+              title: "Success",
+              description: res?.message ?? "Upvoted stream successfully",
+            });
+            setListStream(sortStream(listStream));
+          }
+        } catch (error) {
+          toast({
+            title: "Error",
+            description:
+              error instanceof Error
+                ? error.message
+                : "Failed to upvote stream",
+            variant: "destructive",
+          });
+        } finally {
+          setUpvoting(false);
+        }
+      },
+      500
+    ),
+    [data, listStream, toast]
+  );
+
   return (
     <>
       <div className="col-span-5 bg-gradient-to-br flex flex-col overflow-hidden gap-4 from-gray-800 to-gray-900 md:col-span-2 lg:col-span-3 xl:col-span-4 rounded-xl p-4">
-        <div className="flex flex-col gap-6 flex-1 overflow-y-auto custom_scroll">
+        <div className="flex flex-col gap-6 overflow-y-auto h-full custom_scroll">
           <SpaceHeader streamList={streamList} />
-          <div className="flex lg:flex-grow flex-shrink flex-row flex-wrap gap-6 flex-1 lg:overflow-y-auto custom_scroll">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-1 gap-4 custom_scroll">
             {Array.isArray(listStream) &&
             status === "authenticated" &&
             listStream.length > 0 ? (
@@ -112,16 +226,15 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
                     : stream.user.email === data?.user.email
                     ? "Creator"
                     : "Member";
-
                 return (
                   <StreamCard
                     key={stream.id}
                     stream={stream}
                     currentStream={currentStream.data as CurrentStream}
                     role={role}
-                    setStream={setListStream}
                     userId={data?.user.id}
-                    listStream={listStream}
+                    handleDelete={handleDelete}
+                    toggleUpvote={handleUpVoteDebounce}
                   />
                 );
               })
@@ -267,7 +380,11 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
         )}
 
         {currentStream?.data && spaceType === "youtube" && (
-          <YoutubePlayer currentStream={currentStream.data} />
+          <YoutubePlayer
+            currentStream={currentStream.data}
+            role={role}
+            stream={stream}
+          />
         )}
       </div>
     </>

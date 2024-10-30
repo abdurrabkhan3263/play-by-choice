@@ -80,7 +80,13 @@ export async function deleteStream({
   }
 }
 
-export async function upVoteStream({ streamId }: { streamId: string }) {
+export async function toggleUpVote({
+  streamId,
+  isUpVoted,
+}: {
+  streamId: string;
+  isUpVoted: boolean;
+}) {
   const currentUser = await getCurrentUser();
   if (!currentUser) {
     redirect("/sign-in");
@@ -91,7 +97,7 @@ export async function upVoteStream({ streamId }: { streamId: string }) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ user: currentUser }),
+      body: JSON.stringify({ user: currentUser, isUpVoted }),
     });
     if (!res.ok) {
       throw new Error("Failed to upvote stream");
@@ -100,30 +106,6 @@ export async function upVoteStream({ streamId }: { streamId: string }) {
   } catch (error) {
     throw new Error(
       error instanceof Error ? error.message : "Failed to upvote stream"
-    );
-  }
-}
-
-export async function deleteUpVoteStream({ streamId }: { streamId: string }) {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) {
-    redirect("/sign-in");
-  }
-  try {
-    const res = await fetch(`${baseUrl}/api/upvote/${streamId}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ user: currentUser }),
-    });
-    if (!res.ok) {
-      throw new Error("Failed to delete upvote");
-    }
-    return await res.json();
-  } catch (error) {
-    throw new Error(
-      error instanceof Error ? error.message : "Failed to delete upvote"
     );
   }
 }

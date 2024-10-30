@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation";
 import { createSpace } from "@/lib/action/space.action";
 import { DialogFooter } from "../ui/dialog";
 import { Loader2 } from "lucide-react";
+const USER_LIMIT = 3;
 
 function CreateSpace({
   setIsDialogOpen,
@@ -43,6 +44,26 @@ function CreateSpace({
 
   const onSubmit = async (data: z.infer<typeof CreateStreamSchema>) => {
     setIsSubmitting(true);
+    const totalNumberOfStream = stream.reduce((acc, item) => {
+      const count =
+        item?.itemType === "playlist" || item?.itemType === "album"
+          ? item?.listSongs
+            ? item?.listSongs.length
+            : 1
+          : 1;
+      return acc + count;
+    }, 0);
+
+    if (totalNumberOfStream > USER_LIMIT) {
+      toast({
+        title: "Error",
+        description: `You can only add ${USER_LIMIT} streams`,
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const addStream = await createSpace({ data, stream });
       if (addStream) {

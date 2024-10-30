@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { dateFormat } from "@/lib/utils";
 import { SpaceType } from "@/types";
-import { CalendarDays, Music, X } from "lucide-react";
+import { CalendarDays, Music, Trash2, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useRouter } from "next/navigation";
 import DeleteSpace from "./DeleteSpace";
@@ -27,7 +27,7 @@ export default function SpaceCard({
 
   return (
     <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl">
-      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+      <div className="relative overflow-hidden rounded-xl border border-gray-700  bg-gradient-to-br from-gray-800 to-gray-900 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
         <div className="p-4 xl:p-6 lg:p-8">
           <div className="flex flex-col lg:flex-row items-start gap-6">
@@ -93,7 +93,7 @@ export default function SpaceCard({
             className="text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-full"
           >
             <span className="sr-only">Delete space</span>
-            <X className="h-5 w-5" />
+            <Trash2 className="h-5 w-5 text-red-500" />
           </Button>
         </DeleteSpace>
       </div>

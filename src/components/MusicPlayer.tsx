@@ -114,6 +114,7 @@ function MusicPlayer({
         let isPlaying = false;
 
         toggleBtn.current.addEventListener("click", () => {
+          if (role !== "OWNER") return;
           if (!isPlaying) {
             playTrack(currentStream.stream.extractedId)
               .then(() => {
@@ -236,17 +237,19 @@ function MusicPlayer({
           </div>
         </div>
       )}
-      <div className="flex-1 flex flex-col items-center justify-between">
-        <Button disabled={!isActive || role !== "OWNER"} ref={toggleBtn}>
-          {!isPaused ? (
-            <Pause size={24} className="text-white" />
-          ) : !isActive ? (
-            <Loader2 size={24} className="animate-spin text-gray-400" />
-          ) : (
-            <Play size={24} className="text-white" />
-          )}
-        </Button>
-      </div>
+      {role === "OWNER" && (
+        <div className="flex-1 flex flex-col items-center justify-between">
+          <Button disabled={!isActive || role !== "OWNER"} ref={toggleBtn}>
+            {!isPaused ? (
+              <Pause size={24} className="text-white" />
+            ) : !isActive ? (
+              <Loader2 size={24} className="animate-spin text-gray-400" />
+            ) : (
+              <Play size={24} className="text-white" />
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

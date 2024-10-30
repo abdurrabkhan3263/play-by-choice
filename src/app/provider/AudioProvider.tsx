@@ -11,8 +11,8 @@ async function AudioProvider({
   isAllStreamPlayed,
   type,
   currentStream,
+  role,
 }: AudioProviderProps) {
-  const currentSession = await getServerSession(authOptions);
   const currentStreamData = currentStream?.data as CurrentStream;
 
   return (
@@ -27,16 +27,15 @@ async function AudioProvider({
             currentStream={currentStreamData}
             token={token}
             spaceId={spaceId}
-            role={
-              currentStreamData?.space?.createdBy.id ===
-              currentSession?.user?.id
-                ? "OWNER"
-                : "MEMBER"
-            }
+            role={role}
           />
         )}
         {!currentStreamData && currentStream.isStreamAvailable && (
-          <PlayAgain playAgain={isAllStreamPlayed} spaceId={spaceId} />
+          <PlayAgain
+            playAgain={isAllStreamPlayed}
+            spaceId={spaceId}
+            role={role}
+          />
         )}
       </div>
     </>
