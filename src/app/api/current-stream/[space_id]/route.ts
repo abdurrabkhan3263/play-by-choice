@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { getRedisClient } from "@/lib/redis-client";
 
+// Get Currently Playing Stream or active stream
 export async function GET(
   req: NextRequest,
   { params }: { params: { space_id: string } }
@@ -69,7 +70,7 @@ export async function GET(
           `currentStream:${space_id}`,
           JSON.stringify(currentStream),
           {
-            EX: 30 * 60, // 30 minutes
+            EX: 5 * 60, // 15 minutes
             NX: true,
           }
         );
@@ -97,6 +98,7 @@ export async function GET(
   }
 }
 
+// Update the current stream to the next stream
 export async function POST(
   req: NextRequest,
   { params }: { params: { space_id: string } }
@@ -117,6 +119,9 @@ export async function POST(
 
   try {
     // Use a transaction to ensure data consistency --> it is use to ensure that all the queries are executed successfully
+
+    await client.del(`currentStream:${space_id}`);
+
     const result = await prismaClient.$transaction(
       async (tx: Prisma.TransactionClient) => {
         await tx.currentStream.deleteMany({
@@ -177,7 +182,7 @@ export async function POST(
           JSON.stringify(newCurrentStream),
           {
             NX: true,
-            EX: 30 * 60, // 30 minutes
+            EX: 5 * 60, // 15 minutes
           }
         );
 
@@ -192,6 +197,7 @@ export async function POST(
 
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
+    console.log("Hello2 from error", error);
     return NextResponse.json(
       {
         status: "Error",
@@ -205,6 +211,7 @@ export async function POST(
   }
 }
 
+// Play again the stream
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { space_id: string } }
@@ -266,7 +273,7 @@ export async function PATCH(
           JSON.stringify(newCurrentStream),
           {
             NX: true,
-            EX: 30 * 60, // 30 minutes
+            EX: 5 * 60, // 15 minutes
           }
         );
 
@@ -280,6 +287,7 @@ export async function PATCH(
     );
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
+    console.log("Hello from error", error);
     return NextResponse.json(
       {
         status: "Error",

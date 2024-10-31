@@ -120,7 +120,6 @@ export async function getCurrentStream({ spaceId }: { spaceId: string }) {
     if (!res.ok) {
       throw new Error(resData?.message ?? "Failed to get current stream");
     }
-    console.log(resData);
     return resData;
   } catch (error) {
     throw new Error(
