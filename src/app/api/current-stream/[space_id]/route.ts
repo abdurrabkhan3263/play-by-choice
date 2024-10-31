@@ -2,13 +2,29 @@
 import prismaClient from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
+import { getRedisClient } from "@/lib/redis-client";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { space_id: string } }
 ) {
   const { space_id } = params;
+  const client = await getRedisClient();
+  const cachedData = await client.get(`currentStream:${space_id}`);
+  if (cachedData !== null) {
+    return NextResponse.json(
+      {
+        status: "Success",
+        message: "Current stream found",
+        data: JSON.parse(cachedData),
+        isStreamAvailable: true,
+      },
+      { status: 200 }
+    );
+  }
+
   try {
+    // Use a transaction to ensure data consistency --> it is use to ensure that all the queries are executed successfully
     const result = await prismaClient.$transaction(
       async (tx: Prisma.TransactionClient) => {
         const currentStream = await tx.currentStream.findFirst({
@@ -49,6 +65,15 @@ export async function GET(
           };
         }
 
+        await client.set(
+          `currentStream:${space_id}`,
+          JSON.stringify(currentStream),
+          {
+            EX: 30 * 60, // 30 minutes
+            NX: true,
+          }
+        );
+
         return {
           status: "Success",
           message: "Current stream found",
@@ -76,6 +101,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { space_id: string } }
 ) {
+  const client = await getRedisClient();
   const { space_id } = params;
   const { streamId, currentStream_id } = await req.json();
 
@@ -146,6 +172,15 @@ export async function POST(
           data: { active: true },
         });
 
+        await client.set(
+          `currentStream:${space_id}`,
+          JSON.stringify(newCurrentStream),
+          {
+            NX: true,
+            EX: 30 * 60, // 30 minutes
+          }
+        );
+
         return {
           status: "Success",
           message: "Current stream updated",
@@ -174,6 +209,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: { space_id: string } }
 ) {
+  const client = await getRedisClient();
   const { space_id } = params;
   const { allPlayed } = await req.json();
   try {
@@ -224,6 +260,15 @@ export async function PATCH(
           where: { id: findStream.id, spaceId: space_id },
           data: { active: true },
         });
+
+        await client.set(
+          `currentStream:${space_id}`,
+          JSON.stringify(newCurrentStream),
+          {
+            NX: true,
+            EX: 30 * 60, // 30 minutes
+          }
+        );
 
         return {
           status: "Success",

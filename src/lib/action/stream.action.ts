@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
+import { getRedisClient } from "../redis-client";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
@@ -137,6 +138,7 @@ export async function getCurrentStream({ spaceId }: { spaceId: string }) {
     if (!res.ok) {
       throw new Error(resData?.message ?? "Failed to get current stream");
     }
+    console.log(resData);
     return resData;
   } catch (error) {
     throw new Error(
