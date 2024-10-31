@@ -1,14 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { dateFormat } from "@/lib/utils";
 import { SpaceType } from "@/types";
-import { CalendarDays, Music, Trash2, X } from "lucide-react";
+import { CalendarDays, Music, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useRouter } from "next/navigation";
 import DeleteSpace from "./DeleteSpace";
 import { Button } from "../ui/button";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 export default function SpaceCard({
   id,
@@ -19,25 +20,33 @@ export default function SpaceCard({
 }: SpaceType) {
   const router = useRouter();
   let imageHostName = "";
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   if (Stream.length > 0 && Stream[0].bigImg) {
     const url = new URL(Stream[0].bigImg);
     imageHostName = url.hostname;
   }
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setPreviewLoading(true);
+    router.push(`/dashboard/space/${id}`);
+  };
+
   return (
     <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl">
-      <div className="relative overflow-hidden rounded-xl border border-gray-700  bg-gradient-to-br from-gray-800 to-gray-900 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+      <div className="group relative overflow-hidden rounded-xl border border-gray-700 bg-gradient-to-br from-gray-800 to-gray-900 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-        <div className="p-4 xl:p-6 lg:p-8">
+        <div className="p-4 xl:p-6">
           <div className="flex flex-col lg:flex-row items-start gap-6">
             <div
-              className={`relative ${
+              className={cn(
                 imageHostName === "i.ytimg.com"
                   ? "aspect-video lg:aspect-square"
-                  : "aspect-square"
-              } w-full lg:w-36 overflow-hidden rounded-lg bg-gray-700 shadow-inner`}
-              onClick={() => router.push(`/dashboard/space/${id}`)}
+                  : "aspect-square",
+                "relative w-full lg:w-36 overflow-hidden rounded-lg bg-gray-700 shadow-inner"
+              )}
+              onClick={handleCardClick}
             >
               {Stream.length > 0 && Stream[0].bigImg ? (
                 <Image
@@ -54,11 +63,9 @@ export default function SpaceCard({
               )}
             </div>
             <div className="flex-1 space-y-4">
-              <Link href={`/dashboard/space/${id}`}>
-                <h2 className="text-2xl font-bold leading-tight text-gray-100 group-hover:text-gray-300 transition-colors duration-200">
-                  {name}
-                </h2>
-              </Link>
+              <h2 className="text-2xl font-bold leading-tight text-gray-100 group-hover:text-gray-300 transition-colors duration-200">
+                {name}
+              </h2>
               <div className="flex items-center text-sm text-gray-400">
                 <CalendarDays className="mr-2 h-4 w-4" />
                 <time dateTime={dateFormat(createdAt)}>
@@ -90,7 +97,8 @@ export default function SpaceCard({
           <Button
             variant="ghost"
             size="icon"
-            className="text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-full"
+            className="text-gray-400 hover:text-white hover:bg-gray-700/50 rounded-full absolute right-0 top-0"
+            onClick={(e) => e.stopPropagation()}
           >
             <span className="sr-only">Delete space</span>
             <Trash2 className="h-5 w-5 text-red-500" />

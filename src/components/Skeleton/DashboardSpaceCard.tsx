@@ -6,10 +6,10 @@ export default function DashboardSpaceCardSkeleton() {
   return (
     <div className="custom_scroll space_container">
       <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl">
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 shadow-xl">
+        <div className="relative overflow-hidden border border-gray-700 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 shadow-xl">
           <div className="p-4 xl:p-6 lg:p-8">
             <div className="flex flex-col lg:flex-row items-start gap-6">
-              <div className="relative aspect-square w-full lg:w-36 overflow-hidden rounded-lg bg-gray-700 shadow-inner">
+              <div className="relative aspect-video lg:aspect-square w-full lg:w-36 overflow-hidden rounded-lg bg-gray-700 shadow-inner">
                 <Skeleton className="h-full w-full" />
               </div>
               <div className="flex-1 space-y-4 w-full">
@@ -42,10 +42,10 @@ export default function DashboardSpaceCardSkeleton() {
         </div>
       </div>
       <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl">
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 shadow-xl">
+        <div className="relative overflow-hidden rounded-xl border border-gray-700 bg-gradient-to-br from-gray-800 to-gray-900 shadow-xl">
           <div className="p-4 xl:p-6 lg:p-8">
             <div className="flex flex-col lg:flex-row items-start gap-6">
-              <div className="relative aspect-square w-full lg:w-36 overflow-hidden rounded-lg bg-gray-700 shadow-inner">
+              <div className="relative aspect-video lg:aspect-square w-full lg:w-36 overflow-hidden rounded-lg bg-gray-700 shadow-inner">
                 <Skeleton className="h-full w-full" />
               </div>
               <div className="flex-1 space-y-4 w-full">
