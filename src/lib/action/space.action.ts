@@ -97,35 +97,6 @@ export async function deleteSpaceApi({ id }: { id: string }) {
   }
 }
 
-export async function getSpaceById({ id }: { id: string }) {
-  try {
-    const res = await fetch(`${baseUrl}/api/space/more/${id}`, {
-      method: "GET",
-    });
-
-    if (res.status !== 200) {
-      return {
-        status: "Error",
-        message: "Something went wrong while fetching space",
-      };
-    }
-    const data = await res.json();
-    if (!data.data) {
-      return {
-        status: "Error",
-        message: "Something went wrong while fetching space",
-      };
-    }
-    return data.data;
-  } catch (error) {
-    throw new Error(
-      error instanceof Error
-        ? error.message || "Something went wrong while getting the space"
-        : String(error) || "Something went wrong while getting the space"
-    );
-  }
-}
-
 export async function updateSpaceName({
   spaceId,
   spaceName,
@@ -159,6 +130,38 @@ export async function updateSpaceName({
       error instanceof Error
         ? error.message || "Something went wrong while updating space name"
         : String(error) || "Something went wrong while updating space name"
+    );
+  }
+}
+
+export async function getSpaceById({ id }: { id: string }) {
+  try {
+    const res = await fetch(`${baseUrl}/api/space/more/${id}`, {
+      method: "GET",
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      return {
+        status: "Error",
+        message: "Space not found",
+      };
+    }
+    const jsonRes = await res.json();
+
+    if (jsonRes?.status !== "Success") {
+      return {
+        status: "Error",
+        message: jsonRes?.message ?? "Space not found",
+      };
+    }
+
+    return jsonRes?.data;
+  } catch (error) {
+    throw new Error(
+      error instanceof Error
+        ? error.message || "Something went wrong while getting space"
+        : String(error) || "Something went wrong while getting space"
     );
   }
 }

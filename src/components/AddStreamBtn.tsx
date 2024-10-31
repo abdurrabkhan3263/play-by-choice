@@ -11,6 +11,7 @@ import { useSession } from "next-auth/react";
 import { getAlbum, getPlaylist, getTrack } from "@/lib/action/spotify";
 import { getVideoInfo } from "@/lib/action/youtube";
 const SONG_LIMIT = 50;
+const USER_LIMIT = 3;
 
 function AddStreamBtn({
   streamUrl,
@@ -59,12 +60,27 @@ function AddStreamBtn({
 
     const checkAlreadyExist = stream.some((s) => s.extractedId === type.id);
 
-    console.log("Stream is:- ", stream);
-
     if (checkAlreadyExist) {
       toast({
         title: "Error",
         description: "Stream already exist",
+        variant: "destructive",
+      });
+      setStreamUrl("");
+      return;
+    }
+
+    // Check the number of users
+    const userCounts = stream.reduce((acc: Record<string, number>, current) => {
+      const userId: string = current?.userId ?? "unknown";
+      acc[userId] = (acc[userId] ?? 0) + 1;
+      return acc;
+    }, {});
+
+    if (data?.user?.id && userCounts[data.user.id] >= USER_LIMIT) {
+      toast({
+        title: "Error",
+        description: `You can only add ${USER_LIMIT} streams in a space`,
         variant: "destructive",
       });
       setStreamUrl("");

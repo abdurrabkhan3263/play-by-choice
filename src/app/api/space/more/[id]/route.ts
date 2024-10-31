@@ -1,5 +1,6 @@
 import prismaClient from "@/lib/db";
-import { CreateStreamType, CurrentStream } from "@/types";
+import { sortStream } from "@/lib/utils";
+import { CreateStreamType, CurrentStream, StreamTypeApi } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(
@@ -48,85 +49,6 @@ export async function DELETE(
         message: `Something went wrong ${error}`,
       },
       { status: 401 }
-    );
-  }
-}
-
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const { id } = params;
-
-  if (!id) {
-    return NextResponse.json(
-      {
-        status: "Error",
-        message: "Space Id is invalid",
-      },
-      { status: 404 }
-    );
-  }
-
-  try {
-    const spaceData = await prismaClient.space.findFirst({
-      where: {
-        id: id,
-      },
-      include: {
-        createdBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        Stream: {
-          include: {
-            Upvote: true,
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
-          orderBy: {
-            Upvote: {
-              _count: "desc",
-            },
-          },
-        },
-        CurrentStream: true,
-      },
-    });
-
-    if (!spaceData) {
-      return NextResponse.json(
-        {
-          status: "Error",
-          message: "Given space is not found",
-        },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      {
-        status: "Success",
-        message: "Space is founded successfully",
-        data: spaceData,
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    return NextResponse.json(
-      {
-        status: "Error",
-        message: `Something went wrong ${error}`,
-      },
-      { status: 404 }
     );
   }
 }
@@ -312,6 +234,93 @@ export async function PATCH(
         message: `Something went wrong ${error}`,
       },
       { status: 404 }
+    );
+  }
+}
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  // Extracting the space id from the params
+  const { id } = params;
+
+  if (!id) {
+    return NextResponse.json(
+      {
+        status: "Error",
+        message: "Space Id is invalid",
+      },
+      { status: 404 }
+    );
+  }
+
+  try {
+    // Fetching the space details from the database
+    const space = await prismaClient.space.findUnique({
+      where: { id },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
+        Stream: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+                image: true,
+              },
+            },
+            Upvote: true,
+          },
+          orderBy: {
+            active: "desc",
+          },
+        },
+      },
+    });
+
+    // If space is not found, return an error response
+    if (!space) {
+      return NextResponse.json(
+        {
+          status: "Error",
+          message: "Space not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    let sortedStream = [];
+
+    if (space?.Stream) {
+      sortedStream = sortStream(space.Stream);
+    }
+
+    // Returning the space details
+    return NextResponse.json(
+      {
+        status: "Success",
+        data: {
+          ...space,
+          Stream: sortedStream,
+        },
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      {
+        status: "Error",
+        message: `Something went wrong ${error}`,
+      },
+      { status: 500 }
     );
   }
 }

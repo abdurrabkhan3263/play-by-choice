@@ -6,6 +6,7 @@ import { getCurrentStream } from "@/lib/action/stream.action";
 import { StreamTypeApi } from "@/types";
 import { Metadata } from "next";
 import { getServerSession } from "next-auth";
+import { notFound } from "next/navigation";
 import React from "react";
 
 type Props = {
@@ -16,9 +17,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const listStream = await getSpaceById({ id });
   return {
-    title: `Space: ${listStream.name}`,
+    title: `Space: ${listStream?.name || "Space not found"}`,
     description: `
-    A detailed view of the space named ${listStream.name}, including all streams and their statuses. This page allows users to listen to the current stream and provides an overview of the space's content.
+    A detailed view of the space named ${
+      listStream?.name || "Nothing"
+    }, including all streams and their statuses. This page allows users to listen to the current stream and provides an overview of the space's content.
     `,
   };
 }
@@ -31,6 +34,11 @@ async function page({
 }) {
   const { id } = params;
   const listStream = await getSpaceById({ id });
+
+  if (listStream?.status && listStream?.status === "Error") {
+    notFound();
+  }
+
   const isAllStreamPlayed = listStream.Stream?.every(
     (stream: StreamTypeApi) => stream.played
   );
@@ -50,6 +58,13 @@ async function page({
     console.log("Error: ", error);
   }
 
+  if (!currentUser?.user?.id) {
+    throw new Error("User not found. Please login again or contact support");
+  }
+
+  const role =
+    listStream.createdBy.id === currentUser?.user.id ? "OWNER" : "MEMBER";
+
   return (
     <AudioProvider
       token={currentUser?.user.accessToken as string}
@@ -57,12 +72,14 @@ async function page({
       isAllStreamPlayed={isAllStreamPlayed}
       type={listStream.type}
       currentStream={currentStream}
+      role={role}
     >
       <InsideSpace
         streamList={listStream}
         spaceId={listStream.id}
         spaceType={listStream.type}
         currentStream={currentStream}
+        role={role}
       />
     </AudioProvider>
   );
