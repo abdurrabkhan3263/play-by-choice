@@ -1,6 +1,7 @@
 import prismaClient from "@/lib/db";
 import { sortStream } from "@/lib/utils";
 import { CreateStreamType, CurrentStream, StreamTypeApi } from "@/types";
+import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function DELETE(
@@ -58,7 +59,11 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   const { stream = {} } = await req.json();
+  const { id } = params;
 
+  console.log("Stream is:- ", stream);
+
+  // Check if stream exists
   if (!stream) {
     return NextResponse.json(
       {
@@ -69,8 +74,7 @@ export async function PUT(
     );
   }
 
-  const { id } = params;
-
+  // Check if space exists
   if (!id) {
     return NextResponse.json(
       {
@@ -81,6 +85,7 @@ export async function PUT(
     );
   }
 
+  // Check if space exists
   const spaceExits = await prismaClient.space.findFirst({
     where: {
       id,
@@ -98,74 +103,78 @@ export async function PUT(
   }
 
   try {
-    const streamData = stream.flatMap((item: CreateStreamType) => {
-      if (item?.itemType === "album" || item?.itemType === "playlist") {
-        return (item.listSongs ?? []).map((song: CreateStreamType) => {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { itemType, ...rest } = song;
-          return {
-            ...rest,
-            spaceId: params.id,
-          };
-        });
-      }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { itemType, ...rest } = item;
-      return [
-        {
-          ...rest,
-          spaceId: params.id,
-        },
-      ];
-    });
-    const addStream = await prismaClient.stream.createManyAndReturn({
-      data: streamData,
-      skipDuplicates: true,
-    });
+    const result = await prismaClient.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        if (Array.isArray(stream)) {
+          const addStream = await tx.stream.createManyAndReturn({
+            data: stream,
+            skipDuplicates: true,
+          });
 
-    if (addStream.length === 0) {
-      return NextResponse.json(
-        {
-          status: "Error",
-          message: "Something went wrong while adding stream",
-        },
-        { status: 500 }
-      );
-    }
+          if (addStream.length === 0) {
+            return NextResponse.json(
+              {
+                status: "Error",
+                message: "Something went wrong while adding stream",
+              },
+              { status: 500 }
+            );
+          }
 
-    const getAddedStream = await prismaClient.stream.findMany({
-      where: {
-        id: {
-          in: addStream.map((item: { id: string }) => item.id),
-        },
-      },
-      include: {
-        user: {
-          select: {
-            name: true,
-            email: true,
-            image: true,
+          const getAddedStream = await tx.stream.findMany({
+            where: {
+              id: {
+                in: addStream.map((item: { id: string }) => item.id),
+              },
+            },
+            include: {
+              user: {
+                select: {
+                  name: true,
+                  email: true,
+                  image: true,
+                },
+              },
+              Upvote: true,
+            },
+          });
+
+          if (!getAddedStream) {
+            return NextResponse.json(
+              {
+                status: "Error",
+                message: "Something went wrong while fetching added stream",
+              },
+              { status: 500 }
+            );
+          }
+
+          return getAddedStream;
+        }
+
+        const addStream = await tx.stream.create({
+          data: stream,
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+                image: true,
+              },
+            },
+            Upvote: true,
           },
-        },
-        Upvote: true,
-      },
-    });
-
-    if (!getAddedStream) {
-      return NextResponse.json(
-        {
-          status: "Error",
-          message: "Something went wrong while fetching added stream",
-        },
-        { status: 500 }
-      );
-    }
+        });
+        console.log("Add Stream is:- ", addStream);
+        return addStream;
+      }
+    );
 
     return NextResponse.json(
       {
         status: "Success",
         message: "Stream is added successfully",
-        data: getAddedStream,
+        data: result,
       },
       {
         status: 201,

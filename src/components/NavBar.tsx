@@ -69,7 +69,7 @@ function NavBar() {
           <DropdownMenuTrigger asChild>
             {status === "authenticated" && (
               <Button
-                className="h-10 relative w-10 rounded-full p-0 overflow-hidden"
+                className="h-12 relative border border-gray-300 w-12 rounded-full p-0 overflow-hidden"
                 variant="ghost"
               >
                 {data?.user?.image ? (

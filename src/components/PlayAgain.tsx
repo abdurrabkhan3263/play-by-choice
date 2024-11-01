@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { playAgainStream } from "@/lib/action/stream.action";
 import { useToast } from "@/hooks/use-toast";
+import { Loader, Loader2 } from "lucide-react";
 
 function PlayAgain({
   spaceId,
@@ -14,13 +15,13 @@ function PlayAgain({
   playAgain: boolean;
   role: "OWNER" | "MEMBER";
 }) {
-  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const handlePlayAgain = async () => {
     if (role !== "OWNER") return;
 
-    setSubmitting(true);
+    setLoading(true);
     try {
       await playAgainStream({
         spaceId: spaceId,
@@ -34,7 +35,7 @@ function PlayAgain({
         variant: "destructive",
       });
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
   return (
@@ -42,11 +43,8 @@ function PlayAgain({
       className="music_player"
       style={{ display: "flex", justifyContent: "center" }}
     >
-      <Button
-        onClick={handlePlayAgain}
-        disabled={submitting || role !== "OWNER"}
-      >
-        Play {playAgain && "again"}
+      <Button onClick={handlePlayAgain} disabled={loading || role !== "OWNER"}>
+        {playAgain ? "Play Again" : "Play"}
       </Button>
     </div>
   );

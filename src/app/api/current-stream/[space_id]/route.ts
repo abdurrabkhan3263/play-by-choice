@@ -197,7 +197,6 @@ export async function POST(
 
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
-    console.log("Hello2 from error", error);
     return NextResponse.json(
       {
         status: "Error",
@@ -287,7 +286,6 @@ export async function PATCH(
     );
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
-    console.log("Hello from error", error);
     return NextResponse.json(
       {
         status: "Error",

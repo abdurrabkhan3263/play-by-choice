@@ -16,14 +16,16 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CreateStreamSchema } from "@/lib/zod";
 import { CreateStreamType } from "@/types";
-import AddStreamBtn from "@/components/AddStreamBtn";
 import StreamCard from "@/components/Space/StreamCard";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { createSpace } from "@/lib/action/space.action";
 import { DialogFooter } from "../ui/dialog";
 import { Loader2 } from "lucide-react";
-const USER_LIMIT = 3;
+import { messageForUserLimit, USER_LIMIT_SONG_LIST } from "@/lib/constants";
+import Image from "next/image";
+import { CreateStream as CreateStreamForSpace } from "@/lib/action/stream.action";
+import { createSpace } from "@/lib/action/space.action";
+import { totalNumberOfStreams } from "@/lib/utils";
 
 function CreateSpace({
   setIsDialogOpen,
@@ -33,6 +35,7 @@ function CreateSpace({
   const [streamUrl, setStreamUrl] = useState<string>("");
   const [stream, setStream] = useState<CreateStreamType[]>([]);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { toast } = useToast();
   const router = useRouter();
   const form = useForm<z.infer<typeof CreateStreamSchema>>({
@@ -44,20 +47,14 @@ function CreateSpace({
 
   const onSubmit = async (data: z.infer<typeof CreateStreamSchema>) => {
     setIsSubmitting(true);
-    const totalNumberOfStream = stream.reduce((acc, item) => {
-      const count =
-        item?.itemType === "playlist" || item?.itemType === "album"
-          ? item?.listSongs
-            ? item?.listSongs.length
-            : 1
-          : 1;
-      return acc + count;
-    }, 0);
+    const totalNumberOfStream = totalNumberOfStreams(stream);
 
-    if (totalNumberOfStream > USER_LIMIT) {
+    console.log("Streams:- ", stream);
+
+    if (totalNumberOfStream > USER_LIMIT_SONG_LIST) {
       toast({
         title: "Error",
-        description: `You can only add ${USER_LIMIT} streams`,
+        description: messageForUserLimit,
         variant: "destructive",
       });
       setIsSubmitting(false);
@@ -87,6 +84,29 @@ function CreateSpace({
       setIsDialogOpen(false);
     }
   };
+
+  const handleAddStreams = async ({ streamUrl }: { streamUrl: string }) => {
+    try {
+      const getStream = await CreateStreamForSpace({
+        stream,
+        streamUrl,
+      });
+      if (getStream) {
+        setStream((prev) => [...prev, getStream]);
+        setStreamUrl("");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Something went wrong",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -117,12 +137,25 @@ function CreateSpace({
               onChange={(e) => setStreamUrl(e.target.value)}
               className="bg-[#3A3B3A] border-gray-600 text-gray-100 focus:border-primary"
             />
-            <AddStreamBtn
-              setStream={setStream}
-              streamUrl={streamUrl}
-              stream={stream}
-              setStreamUrl={setStreamUrl}
-            />
+            <Button
+              variant={"addBtn"}
+              type="button"
+              className="flex gap-2"
+              disabled={isLoading}
+              onClick={() => handleAddStreams({ streamUrl })}
+            >
+              {isLoading ? (
+                <Image
+                  src="/logo/loader.svg"
+                  height={20}
+                  width={20}
+                  alt="loading"
+                  className="animate-spin"
+                />
+              ) : (
+                "Add Stream"
+              )}
+            </Button>
           </div>
         </div>
 

@@ -61,8 +61,8 @@ export const authOptions: NextAuthOptions = {
       authorization: {
         params: {
           scope:
-            // "user-read-email user-read-private user-modify-playback-state user-read-playback-state playlist-modify-public playlist-modify-private user-read-currently-playing streaming",
-            "user-read-email user-modify-playback-state user-read-playback-state user-read-currently-playing streaming",
+            // "user-read-email user-modify-playback-state user-read-playback-state user-read-currently-playing streaming",
+            "user-read-email user-read-private user-modify-playback-state user-read-playback-state playlist-modify-public playlist-modify-private user-read-currently-playing streaming",
         },
       },
     }),
@@ -130,12 +130,6 @@ export const authOptions: NextAuthOptions = {
             email: profile?.email,
           },
         });
-        if (
-          account?.provider === "spotify" &&
-          (profile as any)?.product !== "premium"
-        ) {
-          return `/sign-in?error=premium-account-required`;
-        }
         if (
           isUserExits &&
           (isUserExits?.provider).toLowerCase() !==

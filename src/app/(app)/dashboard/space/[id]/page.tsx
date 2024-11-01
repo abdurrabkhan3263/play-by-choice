@@ -80,6 +80,7 @@ async function page({
         spaceType={listStream.type}
         currentStream={currentStream}
         role={role}
+        currentUserId={currentUser?.user?.id}
       />
     </AudioProvider>
   );

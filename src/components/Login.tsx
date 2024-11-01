@@ -14,22 +14,24 @@ import { signIn, useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import FullLoader from "./Loader/FullLoader";
+import { useRouter } from "next/navigation";
 
 function Login() {
   const { status } = useSession();
+  const router = useRouter();
 
   if (status === "loading") {
     return <FullLoader />;
   }
 
   if (status === "authenticated") {
-    redirect("/dashboard");
+    router.push("/dashboard");
+    return null;
   }
 
   const handleAuth = async (provider: string) => {
     await signIn(provider);
   };
-
   return (
     <>
       <AuthError />
@@ -38,7 +40,7 @@ function Login() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Card className="w-96 max-w-sm overflow-hidden bg-[#2a2c2a] border-gray-700">
+        <Card className="w-80 md:w-96 max-w-sm overflow-hidden bg-[#2a2c2a] border-gray-700">
           <CardHeader className="space-y-1">
             <div className="flex items-center justify-center mb-4">
               <motion.div

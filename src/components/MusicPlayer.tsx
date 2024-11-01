@@ -13,6 +13,7 @@ import { addCurrentStream } from "@/lib/action/stream.action";
 import { Loader2, Pause, Play } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CurrentStream } from "@/types";
+import { checkPremiumStatus } from "@/lib/action/spotify";
 
 function MusicPlayer({
   currentStream,
@@ -41,155 +42,191 @@ function MusicPlayer({
   const toggleBtn = useRef<HTMLButtonElement | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://sdk.scdn.co/spotify-player.js";
-    script.async = true;
-
-    document.body.appendChild(script);
-
-    window.onSpotifyWebPlaybackSDKReady = () => {
-      const player = new window.Spotify.Player({
-        name: "Web Playback SDK",
-        getOAuthToken: (cb: (token: string) => void) => {
-          cb(token);
+  const transferPlayback = async (deviceId: string) => {
+    try {
+      await fetch("https://api.spotify.com/v1/me/player/pause", {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-        volume: 1,
-      });
+      }).catch(() => {}); // Ignore if no active device
 
-      if (!player) {
-        setIsError(true);
+      await fetch("https://api.spotify.com/v1/me/player", {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          device_ids: [deviceId],
+          play: false,
+        }),
+      });
+    } catch (error) {
+      console.error("Error transferring playback:", error);
+    }
+  };
+
+  useEffect(() => {
+    (async () => {
+      const isPremium = await checkPremiumStatus({ token });
+
+      if (!isPremium) {
+        toast({
+          title: "Error",
+          description: "You need to have a premium account to play music",
+          variant: "destructive",
+        });
         return;
       }
 
-      player.addListener(
-        "ready",
-        async ({ device_id }: { device_id: string }) => {
-          if (currentStream && currentStream.stream) {
-            setTrack({
-              id: currentStream.stream.id,
-              title: currentStream.stream.title,
-              coverImg: currentStream.stream.smallImg,
-              popularity: currentStream.stream.popularity,
-              artists: currentStream.stream.artists,
-            });
-          }
-          setActive(true);
-          deviceId.current = device_id;
-        }
-      );
+      const script = document.createElement("script");
+      script.src = "https://sdk.scdn.co/spotify-player.js";
+      script.async = true;
 
-      player.on("authentication_error", ({ message }) => {
-        toast({
-          title: "Authentication Error",
-          description: message,
-          variant: "destructive",
+      document.body.appendChild(script);
+
+      window.onSpotifyWebPlaybackSDKReady = () => {
+        const player = new window.Spotify.Player({
+          name: "Web Playback SDK",
+          getOAuthToken: (cb: (token: string) => void) => {
+            cb(token);
+          },
+          volume: 1,
         });
-      });
 
-      player.addListener("not_ready", () => {
-        deviceId.current = "";
-      });
-
-      let done = false;
-      player.addListener(
-        "player_state_changed",
-        async (state: Spotify.PlaybackState) => {
-          if (!state) {
-            return;
-          }
-
-          setIsPaused(state.paused);
-          const trackInPrevious = state.track_window.previous_tracks.find(
-            (x) => x.id === state.track_window.current_track.id
-          );
-          if (trackInPrevious && state.paused && !state.loading && !done) {
-            await handleNextTrack();
-            done = true;
-          }
+        if (!player) {
+          setIsError(true);
+          return;
         }
-      );
 
-      if (toggleBtn.current) {
-        let isPlaying = false;
-
-        toggleBtn.current.addEventListener("click", () => {
-          if (role !== "OWNER") return;
-          if (!isPlaying) {
-            playTrack(currentStream.stream.extractedId)
-              .then(() => {
-                isPlaying = true;
-              })
-              .catch(() => {
-                setIsError(true);
+        player.addListener(
+          "ready",
+          async ({ device_id }: { device_id: string }) => {
+            await transferPlayback(device_id);
+            if (currentStream && currentStream.stream) {
+              setTrack({
+                id: currentStream.stream.id,
+                title: currentStream.stream.title,
+                coverImg: currentStream.stream.smallImg,
+                popularity: currentStream.stream.popularity,
+                artists: currentStream.stream.artists,
               });
-          } else {
-            player.togglePlay();
+            }
+            setActive(true);
+            deviceId.current = device_id;
           }
-        });
-      }
+        );
 
-      const handleNextTrack = async () => {
-        const { data } = await addCurrentStream({
-          spaceId,
-          streamId: streamId.current as string,
-          currentStreamId: currentStreamId.current,
+        player.on("authentication_error", ({ message }) => {
+          toast({
+            title: "Authentication Error",
+            description: message,
+            variant: "destructive",
+          });
         });
 
-        if (data && data.stream) {
-          setTrack({
-            id: data.stream.id,
-            title: data.stream.title,
-            coverImg: data.stream.smallImg,
-            popularity: data.stream.popularity,
-            artists: data.stream.artists,
+        player.addListener("not_ready", () => {
+          deviceId.current = "";
+        });
+
+        let done = false;
+        player.addListener(
+          "player_state_changed",
+          async (state: Spotify.PlaybackState) => {
+            if (!state) {
+              return;
+            }
+
+            setIsPaused(state.paused);
+            const trackInPrevious = state.track_window.previous_tracks.find(
+              (x) => x.id === state.track_window.current_track.id
+            );
+            if (trackInPrevious && state.paused && !state.loading && !done) {
+              await handleNextTrack();
+              done = true;
+            }
+          }
+        );
+
+        if (toggleBtn.current) {
+          let isPlaying = false;
+
+          toggleBtn.current.addEventListener("click", () => {
+            if (role !== "OWNER") return;
+            if (!isPlaying) {
+              playTrack(currentStream.stream.extractedId)
+                .then(() => {
+                  isPlaying = true;
+                })
+                .catch(() => {
+                  setIsError(true);
+                });
+            } else {
+              player.togglePlay();
+            }
+          });
+        }
+
+        const handleNextTrack = async () => {
+          const { data } = await addCurrentStream({
+            spaceId,
+            streamId: streamId.current as string,
+            currentStreamId: currentStreamId.current,
           });
 
-          streamId.current = data.stream.id;
-          currentStreamId.current = data.id;
-          await playTrack(data.stream.extractedId);
-        }
-      };
+          if (data && data.stream) {
+            setTrack({
+              id: data.stream.id,
+              title: data.stream.title,
+              coverImg: data.stream.smallImg,
+              popularity: data.stream.popularity,
+              artists: data.stream.artists,
+            });
 
-      const playTrack = async (trackId: string) => {
-        try {
-          const playResponse = await fetch(
-            `https://api.spotify.com/v1/me/player/play?device_id=${deviceId.current}`,
-            {
-              method: "PUT",
-              body: JSON.stringify({
-                uris: [`spotify:track:${trackId}`],
-              }),
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
+            streamId.current = data.stream.id;
+            currentStreamId.current = data.id;
+            await playTrack(data.stream.extractedId);
+          }
+        };
+
+        const playTrack = async (trackId: string) => {
+          try {
+            const playResponse = await fetch(
+              `https://api.spotify.com/v1/me/player/play?device_id=${deviceId.current}`,
+              {
+                method: "PUT",
+                body: JSON.stringify({
+                  uris: [`spotify:track:${trackId}`],
+                }),
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+            if (!playResponse.ok) {
+              const resData = await playResponse.json();
+              console.error(resData);
+              toast({
+                title: "Error",
+                description: resData?.error.message ?? "Failed to play track",
+                variant: "destructive",
+              });
             }
-          );
-          if (!playResponse.ok) {
-            const resData = await playResponse.json();
+          } catch (error) {
             toast({
               title: "Error",
-              description: resData?.error.message ?? "Failed to play track",
+              description:
+                error instanceof Error ? error.message : "Failed to play track",
               variant: "destructive",
             });
           }
-        } catch (error) {
-          toast({
-            title: "Error",
-            description:
-              error instanceof Error ? error.message : "Failed to play track",
-            variant: "destructive",
-          });
-        }
+        };
+
+        player.connect();
       };
-
-      player.connect();
-    };
-
-    return () => {
-      document.body.removeChild(script);
-    };
+    })();
   }, [currentStream, spaceId, toast, token]);
 
   if (isError) {

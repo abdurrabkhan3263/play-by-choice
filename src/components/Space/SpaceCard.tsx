@@ -26,7 +26,7 @@ export default function SpaceCard({
   }
 
   return (
-    <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl">
+    <div className="w-full">
       <div className="relative overflow-hidden rounded-xl border border-gray-700  bg-gradient-to-br from-gray-800 to-gray-900 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
         <div className="p-4 xl:p-6 lg:p-8">

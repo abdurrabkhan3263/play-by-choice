@@ -131,6 +131,7 @@ declare type InsideSpaceProps = {
   spaceType: StreamType;
   currentStream: FetchCurrentStream;
   role: "OWNER" | "MEMBER";
+  currentUserId: string;
 };
 
 declare type AddStreamBtnProps = {

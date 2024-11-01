@@ -1,4 +1,4 @@
-import { StreamItemType, StreamType, StreamTypeApi } from "@/types";
+import { StreamItemType, StreamType } from "@/types";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -112,4 +112,25 @@ export const sortStream = (listStream: any[]) => {
     result.sort((a, b) => b.Upvote.length - a.Upvote.length);
   }
   return result;
+};
+
+export const userStreamCount = (listStream: any[], currentUserId: string) => {
+  const count = listStream.reduce((acc: Record<string, number>, current) => {
+    const userId: string = current?.userId ?? "unknown";
+    acc[userId] = (acc[userId] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  return count[currentUserId] ?? 2;
+};
+
+export const totalNumberOfStreams = (listStream: any[]) => {
+  const count = listStream.reduce((acc, s) => {
+    if (s.itemType !== "track" && s.listSongs) {
+      return acc + s.listSongs.length;
+    }
+    return acc + 1;
+  }, 0);
+
+  return count;
 };

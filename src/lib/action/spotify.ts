@@ -166,3 +166,16 @@ export async function refreshAccessToken(token: JWT) {
     return { ...token, error: "RefreshAccessTokenError" };
   }
 }
+export const checkPremiumStatus = async ({ token }: { token: string }) => {
+  try {
+    const response = await fetch("https://api.spotify.com/v1/me", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data = await response.json();
+    return data.product === "premium";
+  } catch (error) {
+    return false;
+  }
+};

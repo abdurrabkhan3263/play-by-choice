@@ -21,11 +21,11 @@ body {
 }
 
 .main_container {
-  @apply flex flex-col px-6 lg:px-8 xl:px-40 mt-6;
+  @apply flex flex-col px-4 w-full max-w-7xl;
 }
 
 .space_container {
-  @apply mt-8 lg:mt-12 grid grid-cols-1 sm:grid-cols-2 overflow-y-auto md:grid-cols-3 lg:grid-cols-2 gap-8;
+  @apply pt-1 grid grid-cols-1 sm:grid-cols-2 overflow-y-auto md:grid-cols-3 lg:grid-cols-2 gap-8 lg:gap-x-44;
 }
 
 .music_player {
