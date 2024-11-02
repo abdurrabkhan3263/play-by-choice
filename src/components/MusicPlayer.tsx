@@ -42,31 +42,6 @@ function MusicPlayer({
   const toggleBtn = useRef<HTMLButtonElement | null>(null);
   const { toast } = useToast();
 
-  const transferPlayback = async (deviceId: string) => {
-    try {
-      await fetch("https://api.spotify.com/v1/me/player/pause", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }).catch(() => {}); // Ignore if no active device
-
-      await fetch("https://api.spotify.com/v1/me/player", {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          device_ids: [deviceId],
-          play: false,
-        }),
-      });
-    } catch (error) {
-      console.error("Error transferring playback:", error);
-    }
-  };
-
   useEffect(() => {
     (async () => {
       const isPremium = await checkPremiumStatus({ token });
@@ -103,7 +78,6 @@ function MusicPlayer({
         player.addListener(
           "ready",
           async ({ device_id }: { device_id: string }) => {
-            await transferPlayback(device_id);
             if (currentStream && currentStream.stream) {
               setTrack({
                 id: currentStream.stream.id,
@@ -267,8 +241,9 @@ function MusicPlayer({
           </TooltipProvider>
           <div>
             <div className="flex items-center gap-4">
-              <p className="text-lg font-semibold">{track.title}</p>
-              <p className="text-sm">{track.popularity}</p>
+              <p className="text-lg font-semibold text-balance">
+                {track.title}
+              </p>
             </div>
             <p className="text-sm font-thin">{track?.artists}</p>
           </div>

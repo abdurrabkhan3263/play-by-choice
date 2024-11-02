@@ -16,14 +16,11 @@ export const metadata: Metadata = {
 async function Dashboard() {
   return (
     <div className="flex justify-center">
-      <Suspense fallback={<DashboardSpaceCardSkeleton />}>
-        <div
-          className="main_container"
-          style={{ height: "calc(100vh - 128px)" }}
-        >
+      <div className="main_container" style={{ height: "calc(100vh - 128px)" }}>
+        <Suspense fallback={<DashboardSpaceCardSkeleton />}>
           <ListStreams />
-        </div>
-      </Suspense>
+        </Suspense>
+      </div>
     </div>
   );
 }

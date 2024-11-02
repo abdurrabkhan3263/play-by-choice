@@ -27,6 +27,29 @@ import { CreateStream as CreateStreamForSpace } from "@/lib/action/stream.action
 import { createSpace } from "@/lib/action/space.action";
 import { totalNumberOfStreams } from "@/lib/utils";
 
+const checkDuplicateSongs = (listStream: CreateStreamType[]) => {
+  const songSet = new Set();
+
+  const process = (extractedId: string, title: string) => {
+    if (songSet.has(extractedId)) {
+      throw new Error(`Duplicate song detected: "${title}" already exists.`);
+    }
+    songSet.add(extractedId);
+    return true;
+  };
+
+  listStream.forEach((songObj: CreateStreamType) => {
+    if (songObj?.listSongs) {
+      songObj.listSongs.forEach((listSongs) =>
+        process(listSongs.extractedId, listSongs.title)
+      );
+    } else {
+      process(songObj.extractedId, songObj.title);
+    }
+  });
+  return songSet;
+};
+
 function CreateSpace({
   setIsDialogOpen,
 }: {
@@ -49,12 +72,23 @@ function CreateSpace({
     setIsSubmitting(true);
     const totalNumberOfStream = totalNumberOfStreams(stream);
 
-    console.log("Streams:- ", stream);
-
     if (totalNumberOfStream > USER_LIMIT_SONG_LIST) {
       toast({
         title: "Error",
         description: messageForUserLimit,
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      checkDuplicateSongs(stream);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error instanceof Error ? error.message : "Something went wrong",
         variant: "destructive",
       });
       setIsSubmitting(false);
@@ -87,10 +121,12 @@ function CreateSpace({
 
   const handleAddStreams = async ({ streamUrl }: { streamUrl: string }) => {
     try {
+      setIsLoading(true);
       const getStream = await CreateStreamForSpace({
         stream,
         streamUrl,
       });
+
       if (getStream) {
         setStream((prev) => [...prev, getStream]);
         setStreamUrl("");

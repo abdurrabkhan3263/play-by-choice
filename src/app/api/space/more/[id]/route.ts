@@ -61,8 +61,6 @@ export async function PUT(
   const { stream = {} } = await req.json();
   const { id } = params;
 
-  console.log("Stream is:- ", stream);
-
   // Check if stream exists
   if (!stream) {
     return NextResponse.json(
@@ -165,7 +163,6 @@ export async function PUT(
             Upvote: true,
           },
         });
-        console.log("Add Stream is:- ", addStream);
         return addStream;
       }
     );

@@ -121,7 +121,7 @@ export const userStreamCount = (listStream: any[], currentUserId: string) => {
     return acc;
   }, {});
 
-  return count[currentUserId] ?? 2;
+  return count[currentUserId] ?? 0;
 };
 
 export const totalNumberOfStreams = (listStream: any[]) => {

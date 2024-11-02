@@ -11,25 +11,28 @@ async function ListSpace() {
 
   if (!res || res.status >= 400) {
     return (
-      <div className="h-full flex justify-center mt-40">
-        <div className="text-center">
-          <div className="mb-8 flex justify-center">
-            <Music className="h-32 w-32 text-[#E1FF4B] animate-pulse" />
+      <>
+        <h1 className="text-3xl font-semibold">Dashboard</h1>
+        <div className="h-full flex justify-center mt-40">
+          <div className="text-center">
+            <div className="mb-8 flex justify-center">
+              <Music className="h-32 w-32 text-[#E1FF4B] animate-pulse" />
+            </div>
+            <h1 className="mb-6 text-4xl font-bold tracking-wider text-[#E1FF4B]">
+              SPACE NOT FOUND
+            </h1>
+            <p className="mb-8 text-xl text-gray-400">
+              This space does not exist yet.
+            </p>
+            <CreateSpaceButton>
+              <Button variant={"addBtn"}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Create This Space
+              </Button>
+            </CreateSpaceButton>
           </div>
-          <h1 className="mb-6 text-4xl font-bold tracking-wider text-[#E1FF4B]">
-            SPACE NOT FOUND
-          </h1>
-          <p className="mb-8 text-xl text-gray-400">
-            This space does not exist yet.
-          </p>
-          <CreateSpaceButton>
-            <Button variant={"addBtn"}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Create This Space
-            </Button>
-          </CreateSpaceButton>
         </div>
-      </div>
+      </>
     );
   }
 

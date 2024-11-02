@@ -25,7 +25,12 @@ import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import Image from "next/image";
 import Loader from "../Loader/Loader";
-import { messageForUserLimit, USER_LIMIT_SONG_LIST } from "@/lib/constants";
+import {
+  messageForSongLimit,
+  messageForUserLimit,
+  SONG_LIMIT,
+  USER_LIMIT_SONG_LIST,
+} from "@/lib/constants";
 import { sortStream, userStreamCount } from "@/lib/utils";
 import { debounce, set } from "lodash";
 import { useSession } from "next-auth/react";
@@ -91,6 +96,7 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
           const res = await toggleUpVote({ streamId, isUpVoted });
           if (res.status === "Success") {
             if (!isUpVoted) {
+              setIsUpVoted(true);
               stream.Upvote = stream.Upvote.filter(
                 (upvote) => upvote.userId !== data?.user.id
               );
@@ -117,7 +123,7 @@ const InsideSpace: React.FC<InsideSpaceProps> = ({
           setUpvoting(false);
         }
       },
-      500
+      300
     ),
     [data, listStream, toast]
   );
@@ -243,6 +249,7 @@ function AddStream({
     null
   );
   const [isExpanded, setIsExpanded] = React.useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
 
   // Function to add into the database
   async function AddStreamToDB({
@@ -251,6 +258,8 @@ function AddStream({
     streamData: CreateStreamType | CreateStreamType[];
   }) {
     try {
+      setIsSubmitting(true);
+
       if (Array.isArray(streamData)) {
         const totalNumberofStreams = listStream.length + streamData.length;
         const userLimit = userStreamCount(listStream, currentUserId);
@@ -258,10 +267,10 @@ function AddStream({
           listStream.some((item) => item.extractedId === stream.extractedId)
         );
 
-        if (totalNumberofStreams > USER_LIMIT_SONG_LIST) {
+        if (totalNumberofStreams > SONG_LIMIT) {
           toast({
             title: "Error",
-            description: messageForUserLimit,
+            description: messageForSongLimit,
             variant: "destructive",
           });
           return;
@@ -306,6 +315,8 @@ function AddStream({
           error instanceof Error ? error.message : "Something went wrong",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -343,7 +354,7 @@ function AddStream({
 
   return (
     <>
-      <form onSubmit={handleOnSubmit} className="flex gap-2">
+      <form onSubmit={handleOnSubmit} className="flex gap-2 w-full">
         <Input
           placeholder="Enter stream URL"
           value={streamUrl}
@@ -468,6 +479,7 @@ function AddStream({
                   <Button
                     size={"full"}
                     type="button"
+                    disabled={isSubmitting}
                     onClick={async () =>
                       await AddStreamToDB({
                         streamData:
@@ -475,7 +487,17 @@ function AddStream({
                       })
                     }
                   >
-                    Submit
+                    {isSubmitting ? (
+                      <Image
+                        src="/logo/loader.svg"
+                        height={20}
+                        width={20}
+                        alt="loading"
+                        className="animate-spin"
+                      />
+                    ) : (
+                      "Add Playlist"
+                    )}
                   </Button>
                 </CardContent>
               </Card>

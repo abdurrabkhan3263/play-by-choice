@@ -11,14 +11,13 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import CreateSpace from "./CreateSpace";
-import { Plus } from "lucide-react";
 
 function CreateSpaceButton({ children }: { children: React.ReactNode }) {
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[700px] bg-[#2A2B2A] border-gray-700 text-gray-100">
+      <DialogContent className="sm:max-w-[700px] bg-[#2A2B2A] border-gray-700 text-gray-100 overflow-auto p-4 md:p-6">
         <DialogHeader>
           <DialogTitle className="text-3xl font-semibold text-primary">
             Create Space

@@ -33,7 +33,7 @@ export default function SpaceCard({
           <div className="flex flex-col lg:flex-row items-start gap-6">
             <div
               className={`relative ${
-                imageHostName === "i.ytimg.com"
+                imageHostName === "i.ytimg.com" || !imageHostName
                   ? "aspect-video lg:aspect-square"
                   : "aspect-square"
               } w-full lg:w-36 overflow-hidden rounded-lg bg-gray-700 shadow-inner`}
