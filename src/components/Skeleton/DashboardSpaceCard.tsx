@@ -29,7 +29,7 @@ function SpaceCardSkeleton() {
       <div className="relative overflow-hidden rounded-xl border border-gray-700  bg-gradient-to-br from-gray-800 to-gray-900 shadow-xl transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
         <div className="p-4 xl:p-6 lg:p-8">
           <div className="flex flex-col lg:flex-row items-start gap-6">
-            <div className="relative aspect-square w-full lg:w-36 overflow-hidden rounded-lg bg-gray-700 shadow-inner">
+            <div className="relative aspect-video lg:aspect-square w-full lg:w-36 overflow-hidden rounded-lg bg-gray-700 shadow-inner">
               <Skeleton className="h-full w-full" />
             </div>
             <div className="flex-1 space-y-4 w-full">

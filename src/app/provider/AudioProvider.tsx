@@ -1,7 +1,7 @@
+"use client";
+
 import MusicPlayer from "@/components/MusicPlayer";
 import PlayAgain from "@/components/PlayAgain";
-import { authOptions } from "../api/auth/[...nextauth]/options";
-import { getServerSession, Session } from "next-auth";
 import { AudioProviderProps, CurrentStream } from "@/types";
 
 async function AudioProvider({

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback } from "react";
 import {
   CreateStreamType,
   CurrentStream,
@@ -12,7 +12,6 @@ import StreamCard from "../Stream/SpaceCard";
 import { Input } from "../ui/input";
 import { useToast } from "@/hooks/use-toast";
 import {
-  CreateStream,
   deleteStream,
   toggleUpVote,
   updateStream,
@@ -326,18 +325,22 @@ function AddStream({
     try {
       setIsLoading(true);
 
-      const data = await CreateStream({
-        stream: listStream,
-        streamUrl,
-        spaceId,
+      const data = await fetch("/api/create-stream", {
+        method: "POST",
+        body: JSON.stringify({ streamUrl, stream: listStream, spaceId }),
       });
-      if (!data) return;
 
-      if (data?.itemType === "track") {
-        delete data.itemType;
-        await AddStreamToDB({ streamData: data as CreateStreamType });
+      const response = await data.json();
+
+      if (!data?.ok) {
+        throw new Error(response?.message ?? "Something went wrong");
+      }
+
+      if (response?.data?.itemType === "track") {
+        delete response?.data.itemType;
+        await AddStreamToDB({ streamData: response?.data as CreateStreamType });
       } else {
-        setListOfSongs(data);
+        setListOfSongs(response?.data);
       }
     } catch (error) {
       toast({

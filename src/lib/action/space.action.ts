@@ -20,6 +20,7 @@ export async function createSpace({
     if (!currentUser?.user?.email) {
       throw new Error("User not authenticated");
     }
+
     const addStream = await fetch(`${baseUrl}/api/space`, {
       method: "POST",
       body: JSON.stringify({

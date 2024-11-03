@@ -3,6 +3,8 @@ import { CreateStreamType } from "@/types";
 import prismaClient from "@/lib/db";
 
 export async function POST(req: NextRequest) {
+  console.log("Request body", req.body);
+
   const { spaceName, streams, email, type } = await req.json();
 
   const checkUserExits = await prismaClient.user.findUnique({

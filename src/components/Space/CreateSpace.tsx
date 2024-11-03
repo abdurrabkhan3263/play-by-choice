@@ -23,7 +23,6 @@ import { DialogFooter } from "../ui/dialog";
 import { Loader2 } from "lucide-react";
 import { messageForUserLimit, USER_LIMIT_SONG_LIST } from "@/lib/constants";
 import Image from "next/image";
-import { CreateStream as CreateStreamForSpace } from "@/lib/action/stream.action";
 import { createSpace } from "@/lib/action/space.action";
 import { totalNumberOfStreams } from "@/lib/utils";
 
@@ -122,13 +121,19 @@ function CreateSpace({
   const handleAddStreams = async ({ streamUrl }: { streamUrl: string }) => {
     try {
       setIsLoading(true);
-      const getStream = await CreateStreamForSpace({
-        stream,
-        streamUrl,
+      const data = await fetch("/api/create-stream", {
+        method: "POST",
+        body: JSON.stringify({ streamUrl, stream }),
       });
 
-      if (getStream) {
-        setStream((prev) => [...prev, getStream]);
+      const response = await data.json();
+
+      if (!data?.ok) {
+        throw new Error(response?.message ?? "Something went wrong");
+      }
+
+      if (response?.data) {
+        setStream((prev) => [...prev, response?.data]);
         setStreamUrl("");
       }
     } catch (error) {
